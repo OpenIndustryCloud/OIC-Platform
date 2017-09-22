@@ -1,7 +1,7 @@
-# Legal and General Platform
+# Open Industry Cloud Platform
 ## Introduction
 
-Welcome to the Open Industry Cloud platform. The goal of this project is to develop and open source a standard Open Source application platform for the Insurance industry. For InsurTech startups, it is a nean to accelerate development by focusing on their wits and added value. For historical players, it aims at speeding up product development and bring Google speed. 
+Welcome to the Open Industry Cloud platform. The goal of this project is to develop and open source a standard Open Source application platform for the Insurance industry. For InsurTech startups, it is a mean to accelerate development by focusing on their wits and added value. For historical players, it aims at speeding up product development and bring Google speed to the world of insurance. 
 
 ## Components
 
@@ -17,7 +17,7 @@ Similar to classic PaaS solutions, this solution will provide
 * Monitoring
 * Service Mesh
 * Service Catalog
-  * File Storage 
+  * Object Storage 
   * Columnar DataStore 
   * SQL DataStore 
   * JSON DataStore 

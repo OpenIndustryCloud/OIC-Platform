@@ -11,13 +11,14 @@ Any private git repo, hosted or on premises is OK for these.
 
 # Continuous Integration 
 
-We use [GitLab CI CE](https://about.gitlab.com/) for early stage project and the Enterprise Edition (EE) for internal / private projects.
+
+We use [Jenkins](https://jenkins.io/) for all CI processes.
 
 In addition, we recommend using [Draft](https://github.com/Azure/draft) for developers. 
 
 # Packaging / Continuous Deployment
 
-We use a combination of GitLab and [Helm](https://github.com/kubernetes/helm) to package applications and deploy them to K8s
+We use a combination of Jenkins and [Helm](https://github.com/kubernetes/helm) to package applications and deploy them to K8s.
 
 # Docker Registry
 

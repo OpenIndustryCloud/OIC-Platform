@@ -82,7 +82,17 @@ helm init
 
 Now you are ready to deploy the rest of the add-ons. 
 
-## GitLab
+## Continuous Integration
+
+The definitive solution for this element is not yet decided and we are experimenting with both Jenkins and GitLab CI. Below are methods to deploy both. 
+
+### Jenkins
+
+Jenkins can be deployed using the stable Helm repository. It is to be noted that the configuration of Jenkins is stored as files in the home folder of the jenkins user. As such, it is very easy to save and transport configuration between deployments and environments. 
+
+It is also recommended to isolate a separate volume dedicated to Jenkins instead of using a storage class, which will allow us to leverage cloud tools to perform backups and changes. Google edited a nice repository to explain that part [here](https://github.com/googlecloudplatform/continuous-deployment-on-kubernetes)
+
+### GitLab (deprecated)
 
 Installing GitLab on K8s is officially supported and available [here](https://docs.gitlab.com/ee/install/kubernetes/gitlab_omnibus.html). Note that a more advanced version is currently WIP and planned for Q2 2018. 
 
@@ -111,12 +121,24 @@ gcloud dns record-sets transaction add ${GITLAB_IP} \
 	--ttl=300 \
 	--type=A \
 	--zone=${ZONE}
+for host in prometheus mattermost registry; do
+	gcloud dns record-sets transaction add gitlab.${ZONE}.${DOMAIN}. \
+		--name=prometheus.${ZONE}.${DOMAIN}. \
+		--ttl=300 \
+		--type=CNAME \
+		--zone=${ZONE}
+done
+
+gcloud dns --project=landg-179815 record-sets transaction execute --zone=landg
+
+
 gcloud dns record-sets transaction execute --zone=${ZONE}
 </code></pre>
 
 Now edit the file **etc/gitlab-values.yaml** to add your DNS zone in baseDomain, your email address and other required details. 
 
 **IMPORTANT NOTE**: At the time of this writing (20170922) there is a [bug in the Gitlab chart](https://gitlab.com/charts/charts.gitlab.io/issues/71) on GKE so we have a temporary fork in our own repo. 
+There is also a [secondary bug](https://gitlab.com/gitlab-org/gitlab-ce/issues/35822) that prevents deploying
 
 Finally deploy with: 
 
