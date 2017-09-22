@@ -44,5 +44,5 @@ More information about the architecture [here](/doc/architecture.md)
 
 ## License
 
-This project is under the [MIT License](https://opensource.org/licenses/MIT)
+TBD: This project is under the [MIT License](https://opensource.org/licenses/MIT)
 
