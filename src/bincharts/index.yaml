@@ -1,0 +1,12 @@
+apiVersion: v1
+entries:
+  demoApp:
+  - apiVersion: v1
+    created: 2017-09-29T16:59:52.477322959+02:00
+    description: Chart to deploy a Policy Validation API in Kubernetes
+    digest: a938eb70e39aceaa980d01a37eb523a07c2174c0a1bc7094bb2923b6fcde6ffe
+    name: demoApp
+    urls:
+    - https://landg-charts.storage.googleapis.com/demoApp-0.1.0.tgz
+    version: 0.1.0
+generated: 2017-09-29T16:59:52.476902925+02:00

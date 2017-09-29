@@ -1,0 +1,429 @@
+## Default values for Concourse Helm Chart.
+## This is a YAML-formatted file.
+## Declare variables to be passed into your templates.
+
+## Override the name of the Chart.
+##
+# nameOverride:
+
+## Concourse image.
+##
+image: concourse/concourse
+
+## Concourse image version.
+## ref: https://hub.docker.com/r/concourse/concourse/tags/
+##
+imageTag: "3.3.2"
+
+## Specify a imagePullPolicy: 'Always' if imageTag is 'latest', else set to 'IfNotPresent'.
+## ref: https://kubernetes.io/docs/user-guide/images/#pre-pulling-images
+##
+imagePullPolicy: IfNotPresent
+
+## Configuration values for Concourse.
+## ref: https://concourse.ci/setting-up.html
+##
+concourse:
+  ## Concourse Basic Authentication Username.
+  ## ref: https://concourse.ci/teams.html#authentication
+  ##
+  username: concourse
+
+  ## Concourse Basic Authentication Password.
+  ## ref: https://concourse.ci/teams.html#authentication
+  ##
+  password: concourse
+
+  ## Concourse Host Keys.
+  ## ref: https://concourse.ci/binaries.html#generating-keys
+  ##
+  hostKey: |-
+    -----BEGIN RSA PRIVATE KEY-----
+    MIIEpQIBAAKCAQEA0MCh9Q/B85oL3DbFFEd8h6IRIzAFREb3AhkJ7C9NK0ngAr5H
+    NLsnA/9A1K3mEAEpJH0WgDWrNGsT1u+RkMDK2vb1E1u0ynCYxdRIXerhLYcsJVhA
+    boO7HG2ZXRsnZUcSOaGrwn5bhlZ1S/rthTA/U2IDkgYsLkHXFvR0hdNE2xqklD04
+    C/FtCG3GsDvNE6gxdauGtbpDAlxI//ozzo406jIE2SrFpNMLqKSrSPQzyA8V+bBE
+    fRPHOhKqVn33waeQWphO76a0Tihrr/pTloH5nnUmxVZv2yGqAyxDu4o9DJKqBZql
+    ZTL/epQyu7SojI9fp0rzuV6ZVojvw8fEkvwgmQIDAQABAoIBAQC1Ppsfj5fg7l3f
+    y/neupaHmJHykC3ycv7hZmX0F7mTnSeOmjBuuxOL5+IdBgNa3/cdxDF2DaLg9xsZ
+    oZUsLgeyh3qPXS8iGRK7qK1QRa9OfS86GV6P1XXun8XpTbsttsA/I3xieJz0jTp4
+    RpxU6GgC+HWLIirX2rhqKMLGsoD1DaImcRo8HjEuePO6qv28zkV681kJ3A7yDbjG
+    OlUG1IkhRFaRNq1+gwt+K+mX4AsoMR7vfry1+x4ST88LNLg9+dr3b1OhNvSM0TR8
+    H8Yd8oVa59BOETqg95GwFSxKYXeVVNxQmnmVlglyuWvuNK7A3J3fEru/58WnDWjI
+    ZDOt4DABAoGBAO/YiOAo8G/4IrjTOfxiQ5pUQA34bdlg8k3eMjbiAGC8jSXW9IxO
+    HsQwUUiMx79juDyhMFvinwAJs50Eh2+vFsYf6D14+nAabwkw17wiQZCuoS4XGAdX
+    D5zVu5DmsHepej+C+Y5lTi5dpwQ9lePJ3KyJQWD4Ker3B2od6jAeIpoBAoGBAN7P
+    +wLfMPXhU7tdt4nn6rJO6jbWJ78Np0f9RDkwH2Lygaq34cz/FBTuai3LuC+OODbm
+    iAhvcjMsS7M2mdTM8UWtWoFQ+jDdvnsWP28TksScpPuC1am17GslZF6X6GEtJA+o
+    tcja/o9qIErTJjpqwznR7vG43LoTbCAXiK7DEhaZAoGAXtG3Aw+MRmfNqk3vTaS3
+    XyrRi/Rb0SVvhXNDXMkqJxRDpOL/GPzFUwBbEhh9218b9fQvfxPvkf9D395rgK6y
+    jS8ODEdokqsQnIyPrVPJod434FXG7RfxFyq0FUvuFdCNgNBRwoawSspBff6u5Dfo
+    otk8XI6fW8G/T6d17wHq4gECgYEA1fkTjHF8mlR2zdO1Q9mVWQFSCbFl4CMjh43g
+    a68cJTDQd3s5fF1mEqfXDf269uh0cby33KnyGNSsKgIAfw0Fky1kYhW6/xykJZ56
+    8pfwdaIdCnBd8ioETe1N00282z23iNYzJR2yI1X+hvz5lFYc/7Ts6/Pk/UlTqAoR
+    uAsbntkCgYEA6t3H1ibh2t1GlLhzthRP0SjjERUu5muTu+1Z5zs9tj3nryEmfmcS
+    PRi2QWdnvxRXVquXkBvtafp6k2bAHuGwoWrSyKMipevHJWH2d4EljpMsGJvPX/Wa
+    va9Josf9zKA9IMsLnqGYI8LeW3GGn2tskAcU5Nefr1H+vo7mCV+6OKk=
+    -----END RSA PRIVATE KEY-----
+
+  hostKeyPub: |-
+    ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDQwKH1D8HzmgvcNsUUR3yHohEjMAVERvcCGQnsL00rSeACvkc0uycD/0DUreYQASkkfRaANas0axPW75GQwMra9vUTW7TKcJjF1Ehd6uEthywlWEBug7scbZldGydlRxI5oavCfluGVnVL+u2FMD9TYgOSBiwuQdcW9HSF00TbGqSUPTgL8W0IbcawO80TqDF1q4a1ukMCXEj/+jPOjjTqMgTZKsWk0wuopKtI9DPIDxX5sER9E8c6EqpWfffBp5BamE7vprROKGuv+lOWgfmedSbFVm/bIaoDLEO7ij0MkqoFmqVlMv96lDK7tKiMj1+nSvO5XplWiO/Dx8SS/CCZ scozannet@b8l2h92
+
+  ## Concourse Session Signing Keys.
+  ## ref: https://concourse.ci/binaries.html#generating-keys
+  ##
+  sessionSigningKey: |-
+    -----BEGIN RSA PRIVATE KEY-----
+    MIIEowIBAAKCAQEAk/RVVqDg7fRWwEiCQeVcj8JuD48xnabwnQ36TYYUPxnZLwhU
+    t44rG4waNVtNlG2g2v4XnuoFLie2itT98UYN33izx5wiVhh0sCAaVFMSDlQd/Tic
+    4ae9/j9+sFO8JgYkjqbyPVcICcfwtJ7SIehguq8AADTN7e1KzFPsdABhsQlB2rJm
+    U7VLsyw64U4pKRQRG0htvCkYrwdKOEzB2RDoaK2eg0GEnHzGXXj/DZzuGkLvzDjm
+    TUp1hRUQ3nkwB+7Jf1zxxJyPQUyyw6nzdiyAJTtUHo4VHBCDgPrT8FtDaeBHb75M
+    5nB92lLS4eqN73Z+xSn6cnq3V2DOERSe/yTpHQIDAQABAoIBAB9vNgJlw+RKmXPY
+    8/PUK0pP4NplbgE0ysJTie6Wog6WC1K2zmkBR59esOLNNzpl4FsmyRX2Wotn3Jy6
+    jAmK/L+SAYBTZ+gq4f/Zkj6AN8HblVOLh6lZ3j/6dYw4/iyF+ZZlWeo2Z3rMhBOb
+    +sFBgeun6rQgg/AdDltDKWWr/xWBs00PA1bSjAbTVp6fSoESR9yz/tYepWV7u7rQ
+    FihGPrTiSxHNTZ7jwuwg4/sTvVT6ZxQ5ieI4SoAQCyxt/ROkgDzcWRfp6VkKRCdx
+    DcmeK52UO6KhTvRCPJmiv6p9jHPVz/QPzS5bV+VDqzaI6bN7K9zth4Ji/af+LkIF
+    cs6RMYECgYEAw5Yd+QgC7S1vKsXZfDUv6kzrhf04Jmb7mt4wWXWAi9bm9ywZNE0m
+    wk8vqfIXhdwgkNoRqJiXXftaP0m4blwZtAFsq6wfboDVML0b6IJ7FR0LO/5rbor3
+    jkTcExUVsQrIaBy3APq1lI/irB5Wf+zs63ArKMNnDQKo2PUF1je7IxkCgYEAwae+
+    2njRIYfiBywwL+yrbvg2AozCG+dj/JkQ/aw3UiR5XJ61AqVa1hgSLINLTSqA3xTa
+    kkigU1I7dTQY5+IT0UscN08TRxYmhCB+NWj+UghDolT+qNFZ9A9992bn5gly2Qnu
+    oxogIyg/wH/9qCWZ1yLQZ+6SOwHEH8Kizy1E2qUCgYBLtRf1BXzcgfG+BMeipJPf
+    hdbFDrdlZgeOcuMUPb98YbsVgiRfcl3GaRByIBuq3QJeD4s2T5qH7nuIc+jIDy6D
+    1ulRqlagV44uR4U+AwPRsGRg3KKJL5GTqGPnnwm+dgYNBtBvuJwA3ZFIPpYM/pDW
+    sZyDMt/40Ua6dF3GBdySQQKBgDjyYyVLsfPySX1ieSkep6sSQo+tZMdf2/9D48M1
+    CW+WWjnqUcBdb8DVg0KjuVkPzqXLNBsgUEUwQVvN3iUSTlGVjM6W6kxVLy5bf8Gl
+    BmSJGZp69AggyBsFEz3VfQwgay13xj0gSaMNCvJIsQbpR7wD+NUXStkfQ9UzHz1d
+    SoohAoGBAIFj/3lDJcNuONY9063QEV11YMC/cEmTMsGCF0S1gbOlHONcmhf4VyTK
+    DaWtHFr/DS/qKPBc8KX2EeRuOW3jrPyD+a7LxSoHTs4lwdru9Tak0IR3FvBgOS1E
+    4+2THEPcb7kjWxE6+ldzGI+GhDyySsuUXjSNjLm+onNd01eKtMMd
+    -----END RSA PRIVATE KEY-----
+
+
+  ## Concourse Worker Keys.
+  ## ref: https://concourse.ci/binaries.html#generating-keys
+  ##
+  workerKey: |-
+    -----BEGIN RSA PRIVATE KEY-----
+    MIIEowIBAAKCAQEA0Of2GFyBwj/onQtNH1aZHqMLX1lTNYaa/6Sk3qvu360TtTuX
+    z0ywo4Bsz1VfZ1kr5/Z+0n5J/bYpuuiWFXkZ5xiz3u6tyhZ6basApo2E6SUcIRDM
+    kji/r9buEHuST4UDsWqS3K4tFjp+SHA1DKxu/K+4V5bKj35V9aR7BJafWI7ovMzS
+    o4e2jJVp71dAfKFsx5KTOEP0V55qBgm2C6B0dr3591YS5WeuK57ltlIjBPU7CwzE
+    laQUzdxF6SFWWZ40AIbCjkPnGxubQ/WYec8kKdEakUX06lKy7XSZ5AyEekPWS9O3
+    dQwAnO1Hv2If9IOC/BttlZwanRzcNWNVRxtybQIDAQABAoIBADKEZVZuyFIY8j9H
+    xFaXsl9ePhnIl/6RllnLjrLqENG2INXqm0Nd4DkpjSZ2FqP/REbLrM9qCqp3qo+w
+    PtridgkUSCrYvN3poaFzgKzF/CYE+1Bjp5SUdIYpC1ihCTiBiesVQn5rACwn6PHL
+    cIioCg7Az2se48zfWBoWtEjfw5i+RlwO9k2OBx+d0s0nYXdPdDymjAwcMJP5UZvC
+    f8xekEe8wGhrTRv7RADz9SQQnowM05lU7thP1Vx7OvanbVZjLW3f57/wPiJKy3Mc
+    nUYLrVuWSdWdNUq98engXkHNSR91soBKn9bvIlvH7d0JbhQvHKvjFP/DPhWMnPn3
+    OnJjmAECgYEA66Ej+e7QxPhV1ztuNGvWzoBFqJ2b/ZjhrnJILEOV3cbceenhzgF5
+    /MVw9v1Z38/bNvlenlwo0ZUEAq1wPiGf3HmSI6HJ3XWgm2KkKEh5PHSMJeTL9gg8
+    O0xWRwiznqVX/k0CVVc4xdeNE4iRRWXhCraJdFaEefhMaodJhkVBYC0CgYEA4vdj
+    zQChapMBYCBtI91YELU6bPOwrPQT3whh2i3mM1ah6vgzb842UbPYizeFFBfXeCUv
+    X8Z9fz5DRah2fXB1K3GL/Blys+1x/XVpd+dF025kyZPwUjxdmLbryyH6QYG3u7od
+    fwnPuDQ3V2m+MdMKnQ2eXXst47M+gVbu9oZXg0ECgYEAp77QHd4mQhOJCPEGQ8uB
+    4QDwllmd86wi/k3dk6WJy5kG3MPkPQRQE+N7yFoU4YDYTwq4kYSKiqnLcRyIC7Nk
+    W1Ew+Kz1SPO0oupWc1ck+CUAoPmBOmYiexSdV3SaaxbKzf+E6bxubmpFxOI0iXM+
+    AqJwuKHfLfXWcQBfF3e2UwECgYBsihxbFDsdSVH2E2u+JAMScmiPY/aQr2S1Wz/Y
+    Y+zbjkl+odWPWVFWvygGY7Wrhz9OwJGoPrcTW8Y2ELshf984uGNWWyEkdJ/3sueO
+    JLaaxwdB8xKRcTbdalTW3tfb7dnc18N1Vk7U63uvvOzszN0dgD7Eu7yVUMnKdrVu
+    hY5iQQKBgD+FbGXf59BuibGmPz6IBv062m8XnHSIrc/BYWbsyxpwlUmeZHMLXqNJ
+    DebFYuW1eisZ60V2mXFOtBsCb9b///lDwVzsQeHSPMb3PBXW51BnkmQfh+gCbvgK
+    E3C8kzmwql8FwuQzxHxtCP/BMESWPOTg0V/6mrqsucgE9+c7HDTp
+    -----END RSA PRIVATE KEY-----
+
+
+  workerKeyPub: |-
+    ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDQ5/YYXIHCP+idC00fVpkeowtfWVM1hpr/pKTeq+7frRO1O5fPTLCjgGzPVV9nWSvn9n7Sfkn9tim66JYVeRnnGLPe7q3KFnptqwCmjYTpJRwhEMySOL+v1u4Qe5JPhQOxapLcri0WOn5IcDUMrG78r7hXlsqPflX1pHsElp9Yjui8zNKjh7aMlWnvV0B8oWzHkpM4Q/RXnmoGCbYLoHR2vfn3VhLlZ64rnuW2UiME9TsLDMSVpBTN3EXpIVZZnjQAhsKOQ+cbG5tD9Zh5zyQp0RqRRfTqUrLtdJnkDIR6Q9ZL07d1DACc7Ue/Yh/0g4L8G22VnBqdHNw1Y1VHG3Jt scozannet@b8l2h92
+
+  oldEncryptionKey:
+  encryptionKey:
+
+  ## ATC listen port.
+  ## ref: https://concourse.ci/architecture.html
+  ##
+  atcPort: 8080
+
+  ## TSA listen port.
+  ## ref: https://concourse.ci/architecture.html
+  ##
+  tsaPort: 2222
+
+  ## Allow self signed certificates.
+  ##
+  allowSelfSignedCertificates: false
+
+  ## Length of time for which tokens are valid. Afterwards, users will have to log back in.
+  ## Use Go duration format (48h = 48 hours).
+  ##
+  authDuration: 24h
+
+  ## Interval on which to check for new versions of resources.
+  ## Use Go duration format (1m = 1 minute).
+  ##
+  resourceCheckingInterval: 1m
+
+  ## How long to cache the result of a get step after a newer version of the resource is found.
+  ## Use Go duration format (1m = 1 minute).
+  ##
+  oldResourceGracePeriod: 5m
+
+  ## The interval on which to check for and release old caches of resource versions.
+  ## Use Go duration format (1m = 1 minute),
+  ##
+  resourceCacheCleanupInterval: 30s
+
+  ## URL used to reach any ATC from the outside world.
+  ##
+  # externalURL:
+
+  ## The filesystem driver used by baggageclaim on workers, as of Concourse 3.1 can be values
+  ## "overlay", "btrfs", or "naive". "overlay" is more stable than "btrfs" but is not supported
+  ## on some Linux kernels, while "naive" is most supported but least space efficient. For background see
+  ## https://github.com/concourse/concourse/issues/1230.
+  ##
+  baggageclaimDriver: naive
+
+  ## An URL pointing to the Docker registry to use to fetch Docker images.
+  ## If unset, this will default to the Docker default
+  ##
+  # dockerRegistry:
+
+  ## Docker registry(ies) (comma separated) to allow connecting to even if not secure.
+  ##
+  # insecureDockerRegistry:
+
+  ## Application client ID for enabling GitHub OAuth.
+  ##
+  # githubAuthClientId:
+
+  ## Application client secret for enabling GitHub OAuth.
+  ##
+  # githubAuthClientSecret:
+
+  ## GitHub organizations (comma separated) whose members will have access.
+  ##
+  # githubAuthOrganization:
+
+  ## GitHub teams (comma separated) whose members will have access.
+  ##
+  # githubAuthTeam:
+
+  ## GitHub users (comma separated) to permit access.
+  ##
+  # githubAuthUser:
+
+  ## Override default endpoint AuthURL for Github Enterprise.
+  ##
+  # githubAuthAuthUrl:
+
+  ## Override default endpoint TokenURL for Github Enterprise.
+  ##
+  # githubAuthTokenUrl:
+
+  ## Override default API endpoint URL for Github Enterprise.
+  ##
+  # githubAuthApiUrl:
+
+  ## Application client ID for enabling GitLab OAuth.
+  ##
+  # gitlabAuthClientId:
+
+  ## Application client secret for enabling GitLab OAuth.
+  ##
+  # gitlabAuthClientSecret:
+
+  ## GitLab Group (comma separated) whose members will have access.
+  ##
+  # gitlabAuthGroup:
+
+  ## Endpoint AuthURL for Gitlab server.
+  ##
+  # gitlabAuthAuthUrl:
+
+  ## Endpoint TokenURL for Gitlab server.
+  ##
+  # gitlabAuthTokenUrl:
+
+  ## API endpoint URL for Github server.
+  ##
+  # gitlabAuthApiUrl:
+
+  ## Name for this auth method on the web UI.
+  ##
+  # genericOauthDisplayName:
+
+  ## Application client ID for enabling generic OAuth.
+  ##
+  # genericOauthClientId:
+
+  ## Application client secret for enabling generic OAuth.
+  ##
+  # genericOauthClientSecret:
+
+  ## Generic OAuth provider AuthURL endpoint.
+  ##
+  # genericOauthAuthUrl:
+
+  ## Parameters (comma separated) to pass to the authentication server AuthURL.
+  ##
+  # genericOauthAuthUrlParam:
+
+  ## Optional scope required to authorize user.
+  ##
+  # genericOauthScope:
+
+  ## Generic OAuth provider TokenURL endpoint.
+  ##
+  # genericOauthTokenUrl:
+
+## Configuration values for Concourse Web components.
+##
+web:
+  ## Override the components name (defaults to web).
+  ##
+  # nameOverride:
+
+  ## Number of replicas.
+  ##
+  replicas: 1
+
+  ## Configure resource requests and limits.
+  ## ref: https://kubernetes.io/docs/user-guide/compute-resources/
+  ##
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+
+  ## Service configuration.
+  ## ref: https://kubernetes.io/docs/user-guide/services/
+  ##
+  service:
+    ## For minikube, set this to ClusterIP, elsewhere use LoadBalancer.
+    ## ref: https://kubernetes.io/docs/user-guide/services/#publishing-services---service-types
+    ##
+    type: LoadBalancer
+
+  ## Ingress configuration.
+  ## ref: https://kubernetes.io/docs/user-guide/ingress/
+  ##
+  ingress:
+    ## Enable Ingress.
+    ##
+    enabled: false
+
+    ## Annotations to be added to the web ingress.
+    ##
+    # annotations:
+    #   kubernetes.io/ingress.class: nginx
+    #   kubernetes.io/tls-acme: 'true'
+
+    ## Hostnames.
+    ## Must be provided if Ingress is enabled.
+    ##
+    # hosts:
+    #   - concourse.domain.com
+
+    ## TLS configuration.
+    ## Secrets must be manually created in the namespace.
+    ##
+    # tls:
+    #   - secretName: concourse-web-tls
+    #     hosts:
+    #       - concourse.domain.com
+
+## Configuration values for Concourse Worker components.
+##
+worker:
+  ## Override the components name (defaults to worker).
+  ##
+  # nameOverride:
+
+  ## Number of replicas.
+  ##
+  replicas: 2
+
+  ## Minimun number of workers available after an eviction
+  ## ref: https://kubernetes.io/docs/admin/disruptions/
+  ##
+  minAvailable: 1
+
+  ## Configure resource requests and limits.
+  ## ref: https://kubernetes.io/docs/user-guide/compute-resources/
+  ##
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "512Mi"
+
+  ## Annotations to be added to the worker pods.
+  ##
+  # annotations:
+  #   iam.amazonaws.com/role: arn:aws:iam::123456789012:role/concourse
+
+## Persistent Volume Storage configuration.
+## ref: https://kubernetes.io/docs/user-guide/persistent-volumes
+##
+persistence:
+  ## Enable persistence using Persistent Volume Claims.
+  ##
+  enabled: true
+
+  ## Worker Persistence configuration.
+  ##
+  worker:
+    ## concourse data Persistent Volume Storage Class
+    ## If defined, storageClassName: <storageClass>
+    ## If set to "-", storageClassName: "", which disables dynamic provisioning
+    ## If undefined (the default) or set to null, no storageClassName spec is
+    ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
+    ##   GKE, AWS & OpenStack)
+    ##
+    storageClass: standard
+
+    ## Persistent Volume Access Mode.
+    ##
+    accessMode: ReadWriteOnce
+
+    ## Persistent Volume Storage Size.
+    ##
+    size: 20Gi
+
+## Configuration values for the postgresql dependency.
+## ref: https://github.com/kubernetes/charts/blob/master/stable/postgresql/README.md
+##
+postgresql:
+  ## Use the PostgreSQL chart dependency.
+  ## Set to false if bringing your own PostgreSQL.
+  ##
+  enabled: true
+
+  ## If bringing your own PostgreSQL, the full uri to use
+  ## e.g. postgres://concourse:changeme@my-postgres.com:5432/concourse?sslmode=disable
+  ##
+  # uri:
+
+  ### PostgreSQL User to create.
+  ##
+  postgresUser: concourse
+
+  ## PostgreSQL Password for the new user.
+  ## If not set, a random 10 characters password will be used.
+  ##
+  postgresPassword: concourse
+
+  ## PostgreSQL Database to create.
+  ##
+  postgresDatabase: concourse
+
+  ## Persistent Volume Storage configuration.
+  ## ref: https://kubernetes.io/docs/user-guide/persistent-volumes
+  ##
+  persistence:
+    ## Enable PostgreSQL persistence using Persistent Volume Claims.
+    ##
+    enabled: true
+

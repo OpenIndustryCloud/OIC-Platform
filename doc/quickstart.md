@@ -39,8 +39,11 @@ gcloud components update
 Now let us focus on just one region for our cluster
 
 <pre><code>
-gcloud config set compute/region europe-west2
-gcloud config set compute/zone europe-west2-a
+export REGION=europe-west2
+export GCP_ZONE=a
+
+gcloud config set compute/region ${REGION}
+gcloud config set compute/zone ${REGION}-${GCP_ZONE}
 </code></pre>
 
 Now let us do the important part: setup a cluster
@@ -82,11 +85,81 @@ helm init
 
 Now you are ready to deploy the rest of the add-ons. 
 
+## Create a Chart Repository
+
+Follow this [document](https://github.com/kubernetes/helm/blob/master/docs/chart_repository.md) to setup a GS bucket and make sure we can store charts in it. Using the CLI it gives: 
+
+<pre><code>
+BUCKET_NAME=my-chart-bucket
+
+gsutil mb -c regional -l ${REGION} gs://${BUCKET_NAME}
+gsutil acl ch -R -u AllUsers:R gs://${BUCKET_NAME}
+</code></pre>
+
+
+Then the process to sync charts is documented [here](https://github.com/kubernetes/helm/blob/master/docs/chart_repository_sync_example.md) and will be integrated in the CI CD pipeline later on. 
+
+## Secure ingress with Let's Encrypt
+
+First of all we create a round robin DNS on our hosts with 
+
+<pre><code>
+gcloud dns record-sets transaction start --zone ${ZONE}
+gcloud dns record-sets transaction add \
+	--zone ${ZONE} \
+	--name ingress.${DOMAIN}. \
+	--ttl 600 \
+	--type A $(kubectl get nodes \
+		-o jsonpath='{.items[*].status.addresses[?(@.type=="ExternalIP")].address}')
+gcloud dns record-sets transaction execute --zone landg
+</code></pre>
+
+
+Now we deploy Kube Lego with 
+
+<pre><code>
+helm install --name kube-lego \
+	--namespace kube-system \
+	--values etc/kubelego-values.yaml \
+	stable/kube-lego
+</code></pre>
+
+From now on we can create TLS ingress and let Kube Lego automatically create certs and manage them over time. 
+
 ## Continuous Integration
 
 The definitive solution for this element is not yet decided and we are experimenting with both Jenkins and GitLab CI. Below are methods to deploy both. 
 
-### Jenkins
+### Concourse
+
+[Concourse](https://kubeapps.com/charts/stable/concourse) can be deployed using the stable Helm repository. It relies on PostGreSQL to store configuration data. 
+
+<pre><code>
+helm install --name concourse \
+	--namespace concourse \
+	--values etc/concourse-values.yaml \
+	stable/concourse
+</code></pre>
+
+For this setup we used a random LoadBalancer, which you can identify then connect to via: 
+
+<pre><code>
+kubectl get svc -w concourse-web -n concourse
+</code></pre>
+
+then once you get an IP address for the service, 
+
+<pre><code>
+export SERVICE_IP=$(kubectl get svc --namespace concourse concourse-web -o jsonpath='{.status.loadlancer.ingress[0].ip}')
+
+echo http://$SERVICE_IP:8080
+</code></pre>
+
+At this point you need to download the CLI tools for Concourse using the landing page. More about this [in the official documentation](https://github.com/concourse/fly)
+
+
+
+### Jenkins (deprecated)
 
 Jenkins can be deployed using the stable Helm repository. It is to be noted that the configuration of Jenkins is stored as files in the home folder of the jenkins user. As such, it is very easy to save and transport configuration between deployments and environments. 
 
