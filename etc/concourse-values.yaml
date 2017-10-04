@@ -305,7 +305,7 @@ web:
     ## For minikube, set this to ClusterIP, elsewhere use LoadBalancer.
     ## ref: https://kubernetes.io/docs/user-guide/services/#publishing-services---service-types
     ##
-    type: LoadBalancer
+    type: ClusterIP
 
   ## Ingress configuration.
   ## ref: https://kubernetes.io/docs/user-guide/ingress/
@@ -313,27 +313,27 @@ web:
   ingress:
     ## Enable Ingress.
     ##
-    enabled: false
+    enabled: true
 
     ## Annotations to be added to the web ingress.
     ##
-    # annotations:
-    #   kubernetes.io/ingress.class: nginx
-    #   kubernetes.io/tls-acme: 'true'
+    annotations:
+      kubernetes.io/ingress.class: nginx
+      kubernetes.io/tls-acme: 'true'
 
     ## Hostnames.
     ## Must be provided if Ingress is enabled.
     ##
-    # hosts:
-    #   - concourse.domain.com
+    hosts:
+       - concourse.DOMAIN
 
     ## TLS configuration.
     ## Secrets must be manually created in the namespace.
     ##
-    # tls:
-    #   - secretName: concourse-web-tls
-    #     hosts:
-    #       - concourse.domain.com
+    tls:
+      - secretName: concourse-web-tls
+        hosts:
+          - concourse.DOMAIN
 
 ## Configuration values for Concourse Worker components.
 ##

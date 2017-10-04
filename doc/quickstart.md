@@ -99,11 +99,57 @@ gsutil acl ch -R -u AllUsers:R gs://${BUCKET_NAME}
 
 Then the process to sync charts is documented [here](https://github.com/kubernetes/helm/blob/master/docs/chart_repository_sync_example.md) and will be integrated in the CI CD pipeline later on. 
 
-## Secure ingress with Let's Encrypt
+## Ingress Deployment
+
+Using ingress will give us better application portability than using the default LoadBalancer by most cloud providers, especially when operating on Bare Metal or VMWare environment. 
+
+There are 2 ways to look at this. Initially, nginx can be seen as the safest option since it is widely used in commercial offerings such as GKE or CDK. This is fine for starters, and we will add Kube Lego to manage our TLS certs on top of it. 
+
+On the longer term, with Istio being our target for service mesh, we will add an Istio Ingress to the mix. 
+
+### Deploying the nginx ingress
+
+Google has put a lot of efforts into stabilizing a proper ingress for GKE and we see no reason to reinvent the wheel here. We will use the stable chart for it, with a lightly customized configuration: 
+
+First let us create an IP address for the load balancer: 
+
+<pre><code>
+gcloud compute addresses create nginx-ingress \
+  --description=IP\ Address\ for\ the\ Ingress\ Load\ Balancer \
+  --region europe-west2
+
+NGINX_INGRESS_IP=$(gcloud compute addresses list --format json --filter name=nginx-ingress | jq --raw-output '.[].address')
+</code></pre>
+
+Now create an entry ingress.${ZONE}.${DOMAIN} with: 
+
+<pre><code>
+gcloud dns record-sets transaction start --zone=${ZONE}
+gcloud dns record-sets transaction add ${NGINX_INGRESS_IP} \
+  --name=ingress.${ZONE}.${DOMAIN}. 
+  --ttl=300 \
+  --type=A \
+  --zone=${ZONE}
+gcloud dns record-sets transaction execute --zone=${ZONE}
+</code></pre>
+
+Now let us customize our nginx-values.yaml file and install the chart with
+
+<pre><code>
+sed s#NGINX_INGRESS_IP#${NGINX_INGRESS_IP}#g etc/nginx-values.yaml > /tmp/nginx-values.yaml 
+
+helm install --name nginx \
+	--namespace kube-public \
+	--values /tmp/nginx-values.yaml \
+	stable/nginx-ingresscxcxz
+</code></pre>
+
+### Secure nginx ingress with Let's Encrypt
 
 First of all we create a round robin DNS on our hosts with 
 
 <pre><code>
+[ -f transaction.yaml ] && rm -f transaction.yaml
 gcloud dns record-sets transaction start --zone ${ZONE}
 gcloud dns record-sets transaction add \
 	--zone ${ZONE} \
@@ -111,9 +157,8 @@ gcloud dns record-sets transaction add \
 	--ttl 600 \
 	--type A $(kubectl get nodes \
 		-o jsonpath='{.items[*].status.addresses[?(@.type=="ExternalIP")].address}')
-gcloud dns record-sets transaction execute --zone landg
+gcloud dns record-sets transaction execute --zone ${ZONE}
 </code></pre>
-
 
 Now we deploy Kube Lego with 
 
@@ -134,99 +179,83 @@ The definitive solution for this element is not yet decided and we are experimen
 
 [Concourse](https://kubeapps.com/charts/stable/concourse) can be deployed using the stable Helm repository. It relies on PostGreSQL to store configuration data. 
 
+First we need a CNAME that maps to our round robin DNS: 
+
 <pre><code>
+[ -f transaction.yaml ] && rm -f transaction.yaml
+gcloud dns record-sets transaction start --zone ${ZONE}
+gcloud dns record-sets transaction add \
+	--zone ${ZONE} \
+	--name concourse.${DOMAIN}. \
+	--ttl 600 \
+	--type CNAME ingress.${DOMAIN}.
+gcloud dns record-sets transaction execute --zone ${ZONE}
+</code></pre>
+
+Now we can deploy Concourse with a custom values file that includes a TLS protected ingress. Rotation and management of certs will be done via Kube-lego
+
+<pre><code>
+sed s#DOMAIN#${DOMAIN}#g etc/concourse-values.yaml > /tmp/concourse-values.yaml 
+
 helm install --name concourse \
 	--namespace concourse \
-	--values etc/concourse-values.yaml \
+	--values /tmp/concourse-values.yaml \
 	stable/concourse
 </code></pre>
 
-For this setup we used a random LoadBalancer, which you can identify then connect to via: 
-
-<pre><code>
-kubectl get svc -w concourse-web -n concourse
-</code></pre>
-
-then once you get an IP address for the service, 
-
-<pre><code>
-export SERVICE_IP=$(kubectl get svc --namespace concourse concourse-web -o jsonpath='{.status.loadlancer.ingress[0].ip}')
-
-echo http://$SERVICE_IP:8080
-</code></pre>
+Note that we could have used a LoadBalancer. However LB are construct that map deep into the cloud primitives and with our global reach target we prefer the Ingress object. We can now connect on our URL https://concourse.${DOMAIN} and enjoy our newly deployed CI solution. 
 
 At this point you need to download the CLI tools for Concourse using the landing page. More about this [in the official documentation](https://github.com/concourse/fly)
 
+## Administrative Tools
+### Monitoring 
+#### Prometheus
 
+[Prometheus](https://kubeapps.com/charts/stable/prometheus) can be deployed using the stable Helm repository. 
 
-### Jenkins (deprecated)
-
-Jenkins can be deployed using the stable Helm repository. It is to be noted that the configuration of Jenkins is stored as files in the home folder of the jenkins user. As such, it is very easy to save and transport configuration between deployments and environments. 
-
-It is also recommended to isolate a separate volume dedicated to Jenkins instead of using a storage class, which will allow us to leverage cloud tools to perform backups and changes. Google edited a nice repository to explain that part [here](https://github.com/googlecloudplatform/continuous-deployment-on-kubernetes)
-
-### GitLab (deprecated)
-
-Installing GitLab on K8s is officially supported and available [here](https://docs.gitlab.com/ee/install/kubernetes/gitlab_omnibus.html). Note that a more advanced version is currently WIP and planned for Q2 2018. 
-
-First add the GitLab Chart Repository
+First we need a few CNAME that map to our round robin DNS: 
 
 <pre><code>
-helm repo add gitlab https://charts.gitlab.io
+[ -f transaction.yaml ] && rm -f transaction.yaml
+gcloud dns record-sets transaction start --zone ${ZONE}
+
+for domain in alertmanager prometheus pushgateway 
+do 
+	gcloud dns record-sets transaction add \
+		--zone ${ZONE} \
+		--name ${domain}.${DOMAIN}. \
+		--ttl 600 \
+		--type CNAME ingress.${DOMAIN}.
+done 
+
+gcloud dns record-sets transaction execute --zone ${ZONE}
 </code></pre>
 
-Now create an IP address for the load balancer: 
+Now we can deploy Prometheus with a custom values file that includes a TLS protected ingress. Rotation and management of certs will be done via Kube-lego
 
 <pre><code>
-gcloud compute addresses create gitlab \
-	--description=IP\ Address\ for\ the\ GitLab\ Load\ Balancer \
-	--region europe-west2
+sed s#DOMAIN#${DOMAIN}#g etc/promethus-values.yaml > /tmp/promethus-values.yaml
 
-GITLAB_IP=$(gcloud compute addresses list --format json --filter name=gitlab | jq --raw-output '.[].address')
+helm install --name prometheus \
+	--namespace prometheus \
+	--values /tmp/prometheus-values.yaml \
+	stable/prometheus
 </code></pre>
 
-Now create an entry gitlab.${ZONE}.${DOMAIN} with: 
 
-<pre><code>
-gcloud dns record-sets transaction start --zone=${ZONE}
-gcloud dns record-sets transaction add ${GITLAB_IP} \
-	--name=gitlab.${ZONE}.${DOMAIN}. 
-	--ttl=300 \
-	--type=A \
-	--zone=${ZONE}
-for host in prometheus mattermost registry; do
-	gcloud dns record-sets transaction add gitlab.${ZONE}.${DOMAIN}. \
-		--name=prometheus.${ZONE}.${DOMAIN}. \
-		--ttl=300 \
-		--type=CNAME \
-		--zone=${ZONE}
-done
+#### Sysdig
 
-gcloud dns --project=landg-179815 record-sets transaction execute --zone=landg
+### Logging
+#### Fluent Bit
 
-
-gcloud dns record-sets transaction execute --zone=${ZONE}
-</code></pre>
-
-Now edit the file **etc/gitlab-values.yaml** to add your DNS zone in baseDomain, your email address and other required details. 
-
-**IMPORTANT NOTE**: At the time of this writing (20170922) there is a [bug in the Gitlab chart](https://gitlab.com/charts/charts.gitlab.io/issues/71) on GKE so we have a temporary fork in our own repo. 
-There is also a [secondary bug](https://gitlab.com/gitlab-org/gitlab-ce/issues/35822) that prevents deploying
-
-Finally deploy with: 
-
-<pre><code>
-helm install --name gitlab \
-	--values etc/gitlab-values.yaml \
-	./src/charts/gitlab-omnibus
-</code></pre>
-
-## ElasticSearch
+#### ElasticSearch
 
 To deploy ElasticSearch we use a custom Helm Chart inspired by https://github.com/clockworksoul/helm-elasticsearch
 
+### Artifact Storage
+#### Sonatype Nexus 
 
-
+z
 
 
 <pre><code>
