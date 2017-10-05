@@ -17,13 +17,14 @@ Then make sure that you install
 
 You will also need a Cloud DNS zone for some of the setup. Info about this process is documented [here](https://cloud.google.com/dns/migrating). Once you have a DNS zone pointed to Google Cloud DNS, create it with
 
+
 <pre><code>
+export PROJECT_NAME=my-project 
 export ZONE=myproject
 export DOMAIN=example.com 
 
 gcloud dns managed-zones create ${ZONE} \
 	--dns-name=${ZONE}.${DOMAIN}.
-
 </code></pre>
 
 # Installing a GKE cluster via the command line
@@ -49,18 +50,20 @@ gcloud config set compute/zone ${REGION}-${GCP_ZONE}
 Now let us do the important part: setup a cluster
 
 <pre><code>
-gcloud container clusters create my-first-cluster \
-  --cluster-version 1.7.5 \
+export K8S_CLUSTER_NAME=my-first-clusteer
+gcloud container clusters create ${K8S_CLUSTER_NAME} \
+  --cluster-version 1.7.6 \
   --no-enable-cloud-monitoring \
   --no-enable-cloud-logging \
   --num-nodes 3 \
-  --machine-type n1-standard-4 
+  --machine-type n1-standard-4 \
+  --image-type UBUNTU 
 </code></pre>
 
 Now we just have to download our cluster credentials
 
 <pre><code>
-gcloud container clusters get-credentials my-first-cluster
+gcloud container clusters get-credentials ${K8S_CLUSTER_NAME}
 </code></pre>
 
 and check we are OK with 
@@ -69,6 +72,20 @@ and check we are OK with
 kubectl cluster-info
 
 kubectl get nodes --show-labels
+</code></pre>
+
+For future usage and integration, let us create a gcloud DNS entry for our K8s cluster API: 
+
+<pre><code>
+K8S_API_IP=$(gcloud container clusters describe ${K8S_CLUSTER_NAME} --format json | jq --raw-output '.endpoint')
+
+gcloud dns record-sets transaction start --zone=${ZONE}
+gcloud dns record-sets transaction add ${K8S_API_IP} \
+  --name=k8s.${ZONE}.${DOMAIN}. 
+  --ttl=300 \
+  --type=A \
+  --zone=${ZONE}
+gcloud dns record-sets transaction execute --zone=${ZONE}
 </code></pre>
 
 # Installing addons
@@ -94,6 +111,9 @@ BUCKET_NAME=my-chart-bucket
 
 gsutil mb -c regional -l ${REGION} gs://${BUCKET_NAME}
 gsutil acl ch -R -u AllUsers:R gs://${BUCKET_NAME}
+
+helm repo add project-charts https://${BUCKET_NAME}.storage.googleapis.com
+helm repo update
 </code></pre>
 
 
@@ -207,6 +227,42 @@ Note that we could have used a LoadBalancer. However LB are construct that map d
 
 At this point you need to download the CLI tools for Concourse using the landing page. More about this [in the official documentation](https://github.com/concourse/fly)
 
+Note that the CA will not be recognized by the OS. To download the CA from the website, you can do
+
+<pre><code>
+openssl s_client -servername concourse.${DOMAIN} \
+   -connect concourse.${DOMAIN}:443 \
+   </dev/null | \
+   sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' \
+   > ca-concourse.pem
+</code></pre>
+
+Then you can login with 
+
+<pre><code>
+fly -t ${PROJECT_NAME} login -c https://concourse.${DOMAIN} --ca-cert /tmp/ca.pem
+</code></pre>
+
+At this point we need to configure our resources, which we can do via: 
+
+<pre><code>
+export CLIENT_CERT=$(gcloud container clusters describe ${K8S_CLUSTER_NAME} --format json | jq --raw-output '.masterAuth.clientCertificate' | base64 -w0 )
+
+export CLIENT_KEY=$(gcloud container clusters describe ${K8S_CLUSTER_NAME} --format json | jq --raw-output '.masterAuth.clientKey' | base64 -w0 )
+
+export CLIENT_CA=$(gcloud container clusters describe ${K8S_CLUSTER_NAME} --format json | jq --raw-output '.masterAuth.clusterCaCertificate' | base64 -w0 )
+
+sed -e s#ZONE#${ZONE}#g \
+	-e s#DOMAIN#${DOMAIN}#g \
+	-e s#CLUSTER_CA#${CLUSTER_CA}#g \
+	-e s#CLIENT_KEY#${CLIENT_KEY}#g \
+	-e s#CLIENT_CERT#${CLIENT_CERT}#g \
+	-e s#PROJECT_NAME#${PROJECT_NAME}#g \	
+	-e s#BUCKET_NAME#${BUCKET_NAME}#g \	
+	etc/helm-resource.yaml \
+	> /tmp/helm-resource.yaml
+</code></pre>
+
 ## Administrative Tools
 ### Monitoring 
 #### Prometheus
@@ -245,17 +301,37 @@ helm install --name prometheus \
 
 #### Sysdig
 
-### Logging
-#### Fluent Bit
+Create an account on [Sysdig Cloud](https://sysdig.com/) and follow the instruction to deploy the Sysdig Agent on all nodes. 
 
+**Important Note**: Sysdig does not support the Container Optimized System image that GKE uses by default. You absolutely need to use the ubuntu setup. 
+
+### Logging
 #### ElasticSearch
 
-To deploy ElasticSearch we use a custom Helm Chart inspired by https://github.com/clockworksoul/helm-elasticsearch
+Currently we use logz.io to get an ELKaaS. You can get a free account if your consumption is less than 1GB/day with a retention of 4 days. Once you have it, export the token with 
+
+<pre><code>
+export LOGZIO_TOKEN=YourToken
+</code></pre>
+
+Next: To deploy ElasticSearch we use a custom Helm Chart inspired by https://github.com/clockworksoul/helm-elasticsearch
+
+#### Fluent Bit
+
+To install Fluent with support for logz.io we opened a PR on the official image [here](https://github.com/fluent/fluentd-kubernetes-daemonset/pull/55)
+
+We then adapted the provided manifest while we work on a chart for it. Deploy with 
+
+<pre><code>
+sed s#ThisIsALongToken#${LOGZIO_TOKEN}#g etc/fluentd-manifest.yaml > /tmp/fluentd-manifest.yaml
+
+kubectl create -f /tmp/fluentd-manifest.yaml
+</code></pre>
 
 ### Artifact Storage
 #### Sonatype Nexus 
 
-z
+
 
 
 <pre><code>
