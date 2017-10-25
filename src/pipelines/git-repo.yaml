@@ -73,8 +73,6 @@ jobs:
 
         Result: $TEXT_FILE_CONTENT    
 
-
-
 - name: deployment
   plan:
   - get: every-60m

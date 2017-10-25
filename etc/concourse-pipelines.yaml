@@ -1,0 +1,72 @@
+resource_types:
+# https://github.com/linkyard/concourse-helm-resource
+- name: helm
+  type: docker-image
+  source:
+    repository: linkyard/concourse-helm-resource
+# https://github.com/cloudfoundry-community/slack-notification-resource
+- name: slack-notification
+  type: docker-image
+  source:
+    repository: cfcommunity/slack-notification-resource
+    tag: latest
+# https://github.com/jtarchie/github-pullrequest-resource
+- name: pull-request
+  type: docker-image
+  source:
+    repository: jtarchie/pr
+# https://github.com/ahelal/bender
+
+resources:
+- name: repo-demo-app
+  type: git
+  source:
+    # uri: https://github.com/AmitKrVarman/PolicyValidationAPI
+    uri: https://github.com/SaMnCo/demo-app
+    branch: master
+    disable_ci_skip: true
+- name: every-1m
+  type: time
+  source: {interval: 1m}
+- name: every-5m
+  type: time
+  source: {interval: 5m}
+- name: every-30m
+  type: time
+  source: {interval: 30m}
+- name: every-60m
+  type: time
+  source: {interval: 60m}
+- name: slack-alert-infra
+  type: slack-notification
+  source:
+    url: {{slack-url}}
+- name: PROJECT_NAME
+  type: helm
+  source:
+    cluster_url: https://k8s.ZONE.DOMAIN
+    cluster_ca: CLUSTER_CA
+    admin_key: CLIENT_KEY
+    admin_cert: CLIENT_CERT
+    repos:
+      - name: stable
+        url: https://kubernetes-charts.storage.googleapis.com
+      - name: incubator
+        url: https://kubernetes-charts.storage.googleapis.com
+      - name: oic
+        url: https://BUCKET_NAME-charts.storage.googleapis.com
+        
+  ## Example of Slack Integration
+  # - put: slack-alert-infra
+  #   params:
+  #     # channel: '#infrastructure'
+  #     # text_file: results/message.txt
+  #     text: |
+  #       The build had a result. Check it out at:
+  #       https://concourse.ZONE.DOMAIN/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+  #       or at:
+  #       https://concourse.ZONE.DOMAIN/builds/$BUILD_ID
+
+  #       Result: $TEXT_FILE_CONTENT    
+
+

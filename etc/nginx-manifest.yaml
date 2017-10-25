@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: formio-shell
+  namespace: formio
+spec:
+  containers:
+  - name: formio
+    image: samnco/formio:latest
+    command: [ "sleep", "1000000" ]

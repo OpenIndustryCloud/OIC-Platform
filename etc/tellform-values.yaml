@@ -1,0 +1,134 @@
+
+image: gcr.io/landg-179815/tellform:latest
+
+## Specify a imagePullPolicy
+## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
+## ref: http://kubernetes.io/docs/user-guide/images/#pre-pulling-images
+##
+imagePullPolicy: Always
+
+## Host for the application
+##
+host: tellform.landg.madeden.net
+
+# Main TellForm configuration:
+config:
+  APP_NAME: tellform
+  APP_DESC: "Open Source alternative to TypeForm"
+  SIGNUP_DISABLED: "FALSE"
+  DISABLE_CLUSTER_MODE: "TRUE"
+  SUBDOMAINS_DISABLED: "FALSE"
+  SESSION_SECRET: CHANGE_ME_PLEASE
+  PORT: 3000
+  SOCKET_PORT: 20523
+
+  # Environment: 
+  NODE_ENV: production
+
+  # Create first user
+  CREATE_ADMIN: "TRUE"
+  ADMIN_EMAIL: admin@admin.com
+  ADMIN_USERNAME: root
+  ADMIN_PASSWORD: password
+
+  # Analytics
+  GOOGLE_ANALYTICS_ID: 
+  PRERENDER_TOKEN: 
+  COVERALLS_REPO_TOKEN: 
+  DSN_KEY: 
+  RAVEN_DSN: 
+  reCAPTCHA_KEY: 
+
+  # Social Accounts
+  FACEBOOK_ID: 
+  FACEBOOK_SECRET: 
+
+  TWITTER_KEY: 
+  TWITTER_SECRET: 
+
+  GOOGLE_ID: 
+  GOOGLE_SECRET: 
+
+  LINKEDIN_ID:
+  LINKEDIN_SECRET: 
+  GITHUB_ID: 
+  GITHUB_SECRET: 
+
+  # Mail config
+  mail: 
+    MAILER_EMAIL_ID: samnco@gmail.com
+    MAILER_PASSWORD: 
+    MAILER_FROM: samnco@gmail.com
+
+    # Use this for one of Nodemailer's pre-configured service providers
+    MAILER_SERVICE_PROVIDER: Gmail
+
+    # Use these for a custom service provider 
+    # Note: MAILER_SMTP_HOST will override MAILER_SERVICE_PROVIDER
+    MAILER_SMTP_HOST: smtp.gmail.com
+    MAILER_SMTP_PORT: 465
+    MAILER_SMTP_SECURE: true
+
+##
+## MongoDB chart configuration
+##
+mongodb:
+  ## MongoDB admin password
+  ### ref: https://github.com/bitnami/bitnami-docker-mongodb/blob/master/README.md#setting-the-root-password-on-first-run
+  ###
+  ## mongodbRootPassword:
+  #
+  ## MongoDB custom user and database
+  ## ref: https://github.com/bitnami/bitnami-docker-mongodb/blob/master/README.md#creating-a-user-and-database-on-first-run
+  ##
+  # mongodbUsername:
+  # mongodbPassword:
+  # mongodbDatabase:
+  ## Enable persistence using Persistent Volume Claims
+  ## ref: http://kubernetes.io/docs/user-guide/persistent-volumes/
+  ##
+  persistence:
+    enabled: true
+    ## mongodb data Persistent Volume Storage Class
+    ## If defined, storageClassName: <storageClass>
+    ## If set to "-", storageClassName: "", which disables dynamic provisioning
+    ## If undefined (the default) or set to null, no storageClassName spec is
+    ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
+    ##   GKE, AWS & OpenStack)
+    ##
+    storageClass: standard
+    accessMode: ReadWriteOnce
+    size: 8Gi
+
+# Redis password to use for the in-cluster redis service
+# Redis is not exposed publically
+redis:
+  redisPassword: password
+  image: bitnami/redis:3.2.9-r2
+
+  ## Use password authentication
+  usePassword: false
+## Configure resource requests and limits
+## ref: http://kubernetes.io/docs/user-guide/compute-resources/
+##
+resources:
+  requests:
+    memory: 512Mi
+    cpu: 300m
+  limits:
+    memory: 1Gi
+    cpu: 500m
+
+service:
+  type: ClusterIP
+  externalPort: 3000
+  # loadBalancerIP: 35.197.234.214
+
+## Configure the ingress object to hook into existing infastructure
+### ref : http://kubernetes.io/docs/user-guide/ingress/
+###
+ingress:
+  enabled: true
+  tls: false
+  annotations:
+    kubernetes.io/ingress.class: "nginx"

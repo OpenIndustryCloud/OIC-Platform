@@ -1,0 +1,21 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: gcr.io/landg-179815/python-env
+    tag: 'test'
+
+inputs:
+- name: src
+  path: /userfunc
+
+params: 
+	INPUT: '{"id":"1234","status":"new"}'
+	OUTPUT: '{"id":"1234","status":"tested"}'
+	METHOD: 'POST'
+
+run:
+  path: /test.sh
+

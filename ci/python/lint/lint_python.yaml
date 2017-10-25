@@ -1,0 +1,15 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: mvantellingen/python-lint
+    tag: 'latest'
+
+inputs:
+- name: src
+
+run:
+  path: flake8 src/
+

@@ -1,0 +1,92 @@
+resource_types:
+# https://github.com/linkyard/concourse-helm-resource
+- name: helm
+  type: docker-image
+  source:
+    repository: linkyard/concourse-helm-resource
+# https://github.com/cloudfoundry-community/slack-notification-resource
+- name: slack-notification
+  type: docker-image
+  source:
+    repository: cfcommunity/slack-notification-resource
+    tag: latest
+
+resources: 
+  - name: app
+    type: git 
+    source: 
+      uri: https://github.com/SaMnCo/demo-app
+  - name: demo-app-docker-image
+    type: docker-image
+    source:
+      email: {{docker-email}}
+      username: {{docker-username}}
+      password: {{docker-password}}
+      repository: {{docker-image}}
+  - name: slack-notification
+    type: slack-notification
+    source:
+      url: {{slack-url}}
+  # - name: helm-demo-app
+  #   type: helm
+  #   source:
+  #     cluster_url: {{k8s-cluster-url}}
+  #     cluster_ca: {{k8s-cluster-ca}}
+  #     admin_key: {{k8s-admin-key}}
+  #     admin_cert: {{k8s-admin-cert}}
+  #     repos:
+  #       - name: stable
+  #         url: https://kubernetes-charts.storage.googleapis.com
+  #       - name: incubator
+  #         url: https://kubernetes-charts.storage.googleapis.com
+  #       - name: oic
+  #         url: https://{{charts-bucket}}-charts.storage.googleapis.com
+
+jobs:
+- name: fission-function-echo
+  public: true
+  plan:
+  - get: app
+    trigger: true
+  - task: lint
+    file: app/ci/lint_python.yml
+
+jobs: 
+  - name: build-docker-image
+    public: true
+    serial: true
+    plan: 
+    - get: demo-app
+    - task: lint-dockerfile
+      file: demo-app/ci/lint_dockerfile.yaml
+    - put: demo-app-docker-image
+      params: 
+        build: demo-app
+    - put: slack-notification
+      params:
+        # channel: '#infrastructure'
+        # text_file: results/message.txt
+        text: |
+          The build had a result. Check it out at:
+          https://concourse.{{domain}}/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+          or at:
+          https://concourse.{{domain}}/builds/$BUILD_ID
+
+          Result: Successfully pushed new docker image   
+  - name: build-helm-chart
+    public: true
+    plan: 
+    - get: demo-app
+    - task: lint-helm
+      file: demo-app/ci/lint_helm.yaml
+    - put: slack-notification
+      params:
+        # channel: '#infrastructure'
+        # text_file: results/message.txt
+        text: |
+          The build had a result. Check it out at:
+          https://concourse.{{domain}}/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+          or at:
+          https://concourse.{{domain}}/builds/$BUILD_ID
+
+          Result: Successfully built new Helm Chart   

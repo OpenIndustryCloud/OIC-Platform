@@ -1,0 +1,42 @@
+apiVersion: 1
+description: Collect a form - computes a risk then sends SMS with result
+output: CreateResult
+tasks:
+  # Fetch incoming data and update status. Computes risk.
+  SetToPending:
+    run: set-to-pending
+    inputs: "{$.Invocation.Inputs.default}"
+
+  # Adds a status depending on value of the risk
+  MakeDecision:
+    run: make-decision
+    inputs: "{$.Tasks.SetToPending.Output}"
+    requires:
+    - SetToPending
+
+  SendSMS:
+    run: if
+    inputs:
+      if: "{$.Tasks.SetToPending.Output.risk > 70}"
+      then: 
+        run: send-sms
+        inputs: "{$.Tasks.MakeDecision.Output}"
+      else: 
+        run: send-sms
+        inputs: "{$.Tasks.MakeDecision.Output}"
+    requires:
+    - SetToPending
+    - MakeDecision
+
+  CreateResult:
+    run: compose
+    inputs:
+      id: "{$.Tasks.SetToPending.Output.id}"
+      status: "{$.Tasks.MakeDecision.Output.status}"
+      risk: "{$.Tasks.MakeDecision.Output.risk}"
+      sid: "{$.Tasks.SendSMS.Output.sid}"
+    requires:
+    - SetToPending
+    - MakeDecision
+    - SendSMS
+

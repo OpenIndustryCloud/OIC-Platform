@@ -1,0 +1,17 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: projectatomic/dockerfile-lint
+    tag: 'latest'
+
+inputs:
+- name: src
+
+params: 
+  SEARCH_PATH: "/src/src/docker-images"
+
+run:
+  path: ./src/ci/docker/lint/lint_dockerfile.sh
