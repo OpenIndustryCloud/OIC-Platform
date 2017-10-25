@@ -2,9 +2,7 @@
 
 set -e -u -x
 
-SEARCH_PATH="$1"
-
-find "${SEARCH_PATH}" -maxdepth 1 -name "Dockerfile" \
+find "${SEARCH_PATH:-'.'}" -maxdepth 1 -name "Dockerfile" \
 	-exec echo "Starting linting " {} \; \
 	-exec dockerfile_lint -p -f {} \;
 
