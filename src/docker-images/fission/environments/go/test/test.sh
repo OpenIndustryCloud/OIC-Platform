@@ -19,5 +19,4 @@ curl -sL -XPOST http://localhost:8888/specialize && {
 
 newman run /userfunc/ci/collection.json
 
-rm -f /userfunc/go
-
+rm -f /userfunc/user && exit 0

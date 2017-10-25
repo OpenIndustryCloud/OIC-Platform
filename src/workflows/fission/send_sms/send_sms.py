@@ -3,9 +3,9 @@ from twilio.rest import Client
 from flask import request, jsonify
 
 # Your Account SID from twilio.com/console
-account_sid = "AC38da33d9a8dbc80b0fb114438ed609d5"
+account_sid = "foo"
 # Your Auth Token from twilio.com/console
-auth_token  = "281dfa2e3b8734f0627cd133b7af3dcf"
+auth_token  = "bar""
 
 # Creating a global client
 client = Client(account_sid, auth_token)
