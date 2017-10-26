@@ -1,70 +1,76 @@
-FROM golang:1.8-alpine3.6
+FROM node:8-alpine
 
-ENV VERSION=v8.8.0 NPM_VERSION=5 YARN_VERSION=latest
+# First we convert this image and add Go
+RUN apk add --no-cache ca-certificates
 
-# For base builds
-ENV CONFIG_FLAGS="--fully-static --without-npm" DEL_PKGS="libstdc++" RM_DIRS=/usr/include
+ENV GOLANG_VERSION 1.8.4
 
-RUN apk add --no-cache curl make gcc g++ python linux-headers binutils-gold gnupg libstdc++ && \
-  gpg --keyserver ha.pool.sks-keyservers.net --recv-keys \
-    94AE36675C464D64BAFA68DD7434390BDBE9B9C5 \
-    FD3A5288F042B6850C66B31F09FE44734EB7990E \
-    71DCFD284A79C3B38668286BC97EC7A07EDE3FC1 \
-    DD8F2338BAE7501E3DD5AC78C273792F7D83545D \
-    C4F0DFFF4E8C1A8236409D08E73BC641CC11F4C8 \
-    B9AE9905FFD7803F25714661B63B535A4C206CA9 \
-    56730D5401028683275BD23C23EFEFE93C4CFFFE && \
-  curl -sSLO https://nodejs.org/dist/${VERSION}/node-${VERSION}.tar.xz && \
-  curl -sSL https://nodejs.org/dist/${VERSION}/SHASUMS256.txt.asc | gpg --batch --decrypt | \
-    grep " node-${VERSION}.tar.xz\$" | sha256sum -c | grep . && \
-  tar -xf node-${VERSION}.tar.xz && \
-  cd node-${VERSION} && \
-  ./configure --prefix=/usr ${CONFIG_FLAGS} && \
-  make -j$(getconf _NPROCESSORS_ONLN) && \
-  make install && \
-  cd / && \
-  if [ -z "$CONFIG_FLAGS" ]; then \
-    npm install -g npm@${NPM_VERSION} && \
-    find /usr/lib/node_modules/npm -name test -o -name .bin -type d | xargs rm -rf && \
-    if [ -n "$YARN_VERSION" ]; then \
-      gpg --keyserver ha.pool.sks-keyservers.net --recv-keys \
-        6A010C5166006599AA17F08146C2130DFD2497F5 && \
-      curl -sSL -O https://yarnpkg.com/${YARN_VERSION}.tar.gz -O https://yarnpkg.com/${YARN_VERSION}.tar.gz.asc && \
-      gpg --batch --verify ${YARN_VERSION}.tar.gz.asc ${YARN_VERSION}.tar.gz && \
-      mkdir /usr/local/share/yarn && \
-      tar -xf ${YARN_VERSION}.tar.gz -C /usr/local/share/yarn --strip 1 && \
-      ln -s /usr/local/share/yarn/bin/yarn /usr/local/bin/ && \
-      ln -s /usr/local/share/yarn/bin/yarnpkg /usr/local/bin/ && \
-      rm ${YARN_VERSION}.tar.gz*; \
-    fi; \
-  fi && \
-  apk del curl make gcc g++ python linux-headers binutils-gold gnupg ${DEL_PKGS} && \
-  rm -rf ${RM_DIRS} /node-${VERSION}* /usr/share/man /tmp/* /var/cache/apk/* \
-    /root/.npm /root/.node-gyp /root/.gnupg /usr/lib/node_modules/npm/man \
-    /usr/lib/node_modules/npm/doc /usr/lib/node_modules/npm/html /usr/lib/node_modules/npm/scripts
+# https://golang.org/issue/14851 (Go 1.8 & 1.7)
+# https://golang.org/issue/17847 (Go 1.7)
+COPY test/*.patch /go-alpine-patches/
 
+RUN set -eux; \
+  apk add --no-cache --virtual .build-deps \
+    bash \
+    gcc \
+    musl-dev \
+    openssl \
+    go \
+    curl \
+    jq \
+    git \
+  ; \
+  export \
+# set GOROOT_BOOTSTRAP such that we can actually build Go
+    GOROOT_BOOTSTRAP="$(go env GOROOT)" \
+# ... and set "cross-building" related vars to the installed system's values so that we create a build targeting the proper arch
+# (for example, if our build host is GOARCH=amd64, but our build env/image is GOARCH=386, our build needs GOARCH=386)
+    GOOS="$(go env GOOS)" \
+    GOARCH="$(go env GOARCH)" \
+    GO386="$(go env GO386)" \
+    GOARM="$(go env GOARM)" \
+    GOHOSTOS="$(go env GOHOSTOS)" \
+    GOHOSTARCH="$(go env GOHOSTARCH)" \
+  ; \
+  \
+  wget -O go.tgz "https://golang.org/dl/go$GOLANG_VERSION.src.tar.gz"; \
+  echo 'abf1b2e5ae2a4845f3d2eac00c7382ff209e2c132dc35b7ce753da9b4f52e59f *go.tgz' | sha256sum -c -; \
+  tar -C /usr/local -xzf go.tgz; \
+  rm go.tgz; \
+  \
+  cd /usr/local/go/src; \
+  for p in /go-alpine-patches/*.patch; do \
+    [ -f "$p" ] || continue; \
+    patch -p2 -i "$p"; \
+  done; \
+  ./make.bash; \
+  \
+  rm -rf /go-alpine-patches && \
+  export PATH="/usr/local/go/bin:$PATH"; \
+  go version
 
-RUN npm install -g newman && \
-	npm cache clean --force
+ENV GOPATH /go
+ENV PATH $GOPATH/bin:/usr/local/go/bin:$PATH
 
-RUN apk update && \
-	apk add --no-cache \
-		curl \
-		jq \
-		bash && \
-	rm -r /root/.cache && \
-	rm -rf /var/cache/apk/*
+RUN mkdir -p "$GOPATH/src" "$GOPATH/bin" && chmod -R 777 "$GOPATH"
 
-ENV GOPATH /usr
-ENV APP	   ${GOPATH}/src/github.com/fission/fission/environments/go
+COPY test/go-wrapper /usr/local/bin/
+COPY ./test/test.sh /test.sh
 
-ADD context	    ${APP}/context
-ADD server.go   ${APP}
+WORKDIR /go/src/app
+COPY context	    ./context
+COPY server.go   ./server.go
 
-WORKDIR ${APP}
-RUN go get
-RUN go build -o /server server.go
-
-ADD ./test.sh /test.sh
+RUN chmod +x /usr/local/bin/go-wrapper && \
+    go-wrapper download && \
+    go-wrapper install && \
+    go build -o /server server.go && \
+    go get github.com/fission/fission && \
+    npm install -g newman && \
+    npm cache clean --force && \
+    rm -rf /root/.cache && \
+    rm -rf /var/cache/apk/*
 
 ENTRYPOINT [ "/test.sh" ]
+
+EXPOSE 8888

@@ -21,3 +21,5 @@ RUN pip3 install -r requirements.txt
 ADD ./test/test.sh /test.sh
 
 ENTRYPOINT [ "/test.sh" ]
+
+EXPOSE 8888

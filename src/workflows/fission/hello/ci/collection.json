@@ -21,16 +21,6 @@
 									"pm.test(\"Echo - Correct HTTP Code\", function() {",
 									"    pm.response.to.have.status(200);",
 									"})",
-									"",
-									"pm.test(\"Echo - Received JSON back\", function() {",
-									"    pm.response.to.be.json;",
-									"})",
-									"",
-									"pm.test(\"Echo - Response equals Query\", function () {",
-									"    var jsonData = pm.response.json();",
-									"    var expectedResult = pm.environment.get(\"test-string\");",
-									"    pm.expect(jsonData.test).to.eql(expectedResult);",
-									"});",
 									""
 								]
 							}
@@ -63,6 +53,9 @@
 							"protocol": "http",
 							"host": [
 								"localhost:8888"
+							],
+							"path": [
+								""
 							]
 						},
 						"description": "Simple echo test"
@@ -89,6 +82,9 @@
 									"protocol": "http",
 									"host": [
 										"localhost:8888"
+									],
+									"path": [
+										""
 									]
 								}
 							},

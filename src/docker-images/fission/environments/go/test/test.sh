@@ -5,9 +5,9 @@ MYDIR="$(dirname ${MYNAME})"
 
 /server &
 
-find /userfunc -name "*.go" -exec cp {} /userfunc/user \;
+find /userfunc -maxdepth 1 -name "*.go" -exec go build -buildmode=plugin -o function.so $filename {} \; -exec mv function.so /userfunc/user \;
 
-sleep 3
+sleep 1
 
 # First we need to perform the Specialize Option
 curl -sL -XPOST http://localhost:8888/specialize && {
