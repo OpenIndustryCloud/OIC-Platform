@@ -12,8 +12,8 @@ inputs:
   path: /code
 
 run:
-  path: ls
-  # path: /code/src/workflows/fission/cho/ci/lint_python.sh
+  # path: ls
+  path: ./code/src/workflows/fission/echo/ci/lint_python.sh
   # path: /usr/local/bin/flake8 /code/src/workflows/fission/cho/ci/lint_python.sh
 
 
