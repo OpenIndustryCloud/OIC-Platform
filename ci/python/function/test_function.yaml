@@ -1,25 +1,19 @@
 ---
 platform: linux
 
-image_resource:
-  type: docker-image
-  source:
-    email: ((docker-gcr-email))
-    username: ((docker-gcr-username))
-    password: ((docker-gcr-password))
-    repository: ((docker-gcr-root))/((docker-image-python-env))
-    tag: 'test'
+# image_resource:
+#   type: docker-image
+#   source:
+#     email: ((docker-gcr-email))
+#     username: ((docker-gcr-username))
+#     password: ((docker-gcr-password))
+#     repository: ((docker-gcr-root))/((docker-image-python-env))
+#     tag: 'test'
 
 inputs:
 - name: src
   path: /userfunc
 
-params: 
-  docker-gcr-email: foo
-  docker-gcr-username: bar
-  docker-gcr-password: baz
-  docker-gcr-root: bim
-  docker-image-python-env: gee
 
 run:
   path: /test.sh

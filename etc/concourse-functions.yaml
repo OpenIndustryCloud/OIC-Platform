@@ -22,14 +22,14 @@ resources:
   type: slack-notification
   source:
     url: ((slack-url))
-# - name: docker-image-python-test
-#   type: docker-image
-#   source:
-#     email: ((docker-gcr-email))
-#     username: ((docker-gcr-username))
-#     password: ((docker-gcr-password))
-#     repository: ((docker-gcr-root))/((docker-image-python-env))
-#     tag: test
+- name: docker-image-python-test
+  type: docker-image
+  source:
+    email: ((docker-gcr-email))
+    username: ((docker-gcr-username))
+    password: ((docker-gcr-password))
+    repository: ((docker-gcr-root))/((docker-image-python-env))
+    tag: test
 # - name: docker-image-go-test
 #   type: docker-image
 #   source:
@@ -54,16 +54,12 @@ jobs:
   plan:
   - get: src
     trigger: true
+  - get: docker-image-python-test
   - task: lint-python
     file: src/ci/python/lint/lint_python.yaml
   - task: test-function
+    image: docker-image-python-test
     file: src/ci/python/function/test_function.yaml
-    params: 
-      docker-gcr-email: ((docker-gcr-email))
-      docker-gcr-username: ((docker-gcr-username))
-      docker-gcr-password: ((docker-gcr-password))
-      docker-gcr-root: ((docker-gcr-root))
-      docker-image-python-env: ((docker-image-python-env))
 
     on_success: 
       put: slack-alert-infra
