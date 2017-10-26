@@ -22,14 +22,14 @@ resources:
   type: slack-notification
   source:
     url: ((slack-url))
-- name: docker-image-python-test
-  type: docker-image
-  source:
-    email: ((docker-gcr-email))
-    username: ((docker-gcr-username))
-    password: ((docker-gcr-password))
-    repository: ((docker-gcr-root))/((docker-image-python-env))
-    tag: test
+# - name: docker-image-python-test
+#   type: docker-image
+#   source:
+#     email: ((docker-gcr-email))
+#     username: ((docker-gcr-username))
+#     password: ((docker-gcr-password))
+#     repository: ((docker-gcr-root))/((docker-image-python-env))
+#     tag: test
 # - name: docker-image-go-test
 #   type: docker-image
 #   source:
