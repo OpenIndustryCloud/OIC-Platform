@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -eux
+
 MYNAME="$(readlink -f $0)"
 MYDIR="$(dirname ${MYNAME})"
 
