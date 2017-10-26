@@ -64,7 +64,7 @@ jobs:
     params:
       build: src/src/docker-images/fission/environments/python3
       dockerfile: src/src/docker-images/fission/environments/python3/test/Dockerfile
-      tag: test
+      tag: src/src/docker-images/fission/environments/python3/test/tag
   - put: slack-alert-infra
     params:
       text: |
