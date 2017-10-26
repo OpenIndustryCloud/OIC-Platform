@@ -12,5 +12,5 @@ inputs:
   path: /code
 
 run:
-  path: flake8 workflows/fission/echo/
+  path: flake8 src/workflows/fission/echo/
 
