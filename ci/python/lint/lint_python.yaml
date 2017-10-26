@@ -11,7 +11,8 @@ inputs:
 - name: src
 
 run:
-  path: src/src/workflows/echo/ci/lint_python.sh
+  path: ls src
+  # path: src/src/workflows/echo/ci/lint_python.sh
 
 
 
