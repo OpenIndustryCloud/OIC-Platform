@@ -58,6 +58,13 @@ jobs:
     file: src/ci/python/lint/lint_python.yaml
   - task: test-function
     file: src/ci/python/function/test_function.yaml
+    params: 
+      docker-gcr-email: ((docker-gcr-email))
+      docker-gcr-username: ((docker-gcr-username))
+      docker-gcr-password: ((docker-gcr-password))
+      docker-gcr-root: ((docker-gcr-root))
+      docker-image-python-env: ((docker-image-python-env))
+
     on_success: 
       put: slack-alert-infra
       params:
