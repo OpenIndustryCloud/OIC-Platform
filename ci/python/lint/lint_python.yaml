@@ -11,5 +11,7 @@ inputs:
 - name: src
 
 run:
-  path: /usr/local/bin/flake8 src/src/workflows/echo/
+  path: src/src/workflows/echo/ci/lint_python.sh
+
+
 

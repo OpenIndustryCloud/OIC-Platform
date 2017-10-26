@@ -2,5 +2,10 @@
 
 set -e -u -x
 
-flake8 app/
+# Load Configuration
+MYNAME="$(readlink -f "$0")"
+MYDIR="$(dirname "${MYNAME}")"
+
+
+flake8 "${MYDIR}/../"
 
