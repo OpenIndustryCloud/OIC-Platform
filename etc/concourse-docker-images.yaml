@@ -49,6 +49,14 @@ resources:
     password: ((docker-gcr-password))
     repository: ((docker-gcr-root))/((docker-image-go-env))
     tag: latest
+- name: docker-image-go-builder
+  type: docker-image
+  source:
+    email: ((docker-gcr-email))
+    username: ((docker-gcr-username))
+    password: ((docker-gcr-password))
+    repository: ((docker-gcr-root))/((docker-image-go-builder))
+    tag: latest
 - name: docker-image-nodejs-test
   type: docker-image
   source:
@@ -67,7 +75,6 @@ resources:
     tag: latest
 
 
-
 jobs:  
 # Update Python Images
 - name: build-fission-python-env-image
@@ -83,7 +90,6 @@ jobs:
   - put: docker-image-python-env
     params:
       build: src/src/docker-images/fission/environments/python3
-      tag: latest
 
 - name: build-fission-python-test-image
   public: true
@@ -122,7 +128,20 @@ jobs:
   - put: docker-image-go-env
     params:
       build: src/src/docker-images/fission/environments/go
-      tag: latest
+
+- name: build-fission-go-builder-image
+  public: true
+  serial: true
+  plan:
+  - get: src
+    trigger: true
+  - task: lint-dockerfiles
+    file: src/ci/docker/lint/lint_dockerfile.yaml
+    params: 
+      SEARCH_PATH: "src/src/docker-images/fission/environments/go/builder"    
+  - put: docker-image-go-builder
+    params:
+      build: src/src/docker-images/fission/environments/go/builder
 
 - name: build-fission-go-test-image
   public: true
@@ -161,9 +180,8 @@ jobs:
   - put: docker-image-nodejs-env
     params:
       build: src/src/docker-images/fission/environments/nodejs
-      tag: latest
 
-- name: build-fission-python-test-image
+- name: build-fission-nodejs-test-image
   public: true
   serial: true
   plan:
@@ -173,7 +191,7 @@ jobs:
     file: src/ci/docker/lint/lint_dockerfile.yaml
     params: 
       SEARCH_PATH: "src/src/docker-images/fission/environments/nodejs/test"    
-  - put: docker-image-python-test
+  - put: docker-image-nodejs-test
     params:
       build: src/src/docker-images/fission/environments/nodejs
       dockerfile: src/src/docker-images/fission/environments/nodejs/test/Dockerfile
