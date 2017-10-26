@@ -14,6 +14,13 @@ inputs:
 - name: src
   path: /userfunc
 
+params: 
+  docker-gcr-email: foo
+  docker-gcr-username: bar
+  docker-gcr-password: baz
+  docker-gcr-root: bim
+  docker-image-python-env: gee
+
 run:
   path: /test.sh
 
