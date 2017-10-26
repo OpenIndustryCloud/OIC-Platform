@@ -11,5 +11,5 @@ inputs:
 - name: src
 
 run:
-  path: 'ls -laR'
+  path: flake8 ./
 
