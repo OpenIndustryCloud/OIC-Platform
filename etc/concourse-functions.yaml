@@ -56,7 +56,7 @@ jobs:
     trigger: true
   - task: lint-python
     file: src/ci/python/lint/lint_python.yaml
-  - put: test-function
+  - task: test-function
     file: src/ci/python/function/test_function.yaml
     on_success: 
       put: slack-alert-infra
