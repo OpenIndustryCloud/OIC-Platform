@@ -13,7 +13,7 @@ inputs:
 
 run:
   # path: ls src
-  path: code/src/workflows/echo/ci/lint_python.sh
+  path: src/workflows/echo/ci/lint_python.sh
 
 
 
