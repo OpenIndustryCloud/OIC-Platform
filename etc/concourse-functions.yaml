@@ -57,10 +57,10 @@ jobs:
   - get: docker-image-python-test
   - task: lint-python
     file: src/ci/python/lint/lint_python.yaml
-  - task: test-function
+  - task: newman-function
     image: docker-image-python-test
     file: src/ci/python/function/test_function.yaml
-
+    input_mapping: {src: src}
     on_success: 
       put: slack-alert-infra
       params:

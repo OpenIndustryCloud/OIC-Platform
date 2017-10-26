@@ -8,6 +8,8 @@ groups:
   - build-fission-go-builder-image
   - build-fission-nodejs-env-image
   - build-fission-nodejs-test-image
+  - build-fission-binary-env-image
+  - build-fission-binary-test-image
 
 
 
@@ -85,6 +87,22 @@ resources:
     username: ((docker-gcr-username))
     password: ((docker-gcr-password))
     repository: ((docker-gcr-root))/((docker-image-nodejs-env))
+    tag: latest
+- name: docker-image-binary-test
+  type: docker-image
+  source:
+    email: ((docker-gcr-email))
+    username: ((docker-gcr-username))
+    password: ((docker-gcr-password))
+    repository: ((docker-gcr-root))/((docker-image-binary-env))
+    tag: test
+- name: docker-image-binary-env
+  type: docker-image
+  source:
+    email: ((docker-gcr-email))
+    username: ((docker-gcr-username))
+    password: ((docker-gcr-password))
+    repository: ((docker-gcr-root))/((docker-image-binary-env))
     tag: latest
 
 
@@ -245,4 +263,48 @@ jobs:
         or at:
         https://concourse.((domain))/builds/$BUILD_ID
 
+# Update Binary Image
+- name: build-fission-binary-env-image
+  public: true
+  serial: true
+  plan:
+  - get: src
+    trigger: true
+  - task: lint-dockerfiles
+    file: src/ci/docker/lint/lint_dockerfile.yaml
+    params: 
+      SEARCH_PATH: "src/src/docker-images/fission/environments/binary"    
+  - put: docker-image-binary-env
+    params:
+      build: src/src/docker-images/fission/environments/binary
+  - put: slack-alert-infra
+    params:
+      text: |
+        We tested and built several Docker images for the infrastructure. See at: 
+        https://concourse.((domain))/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+        or at:
+        https://concourse.((domain))/builds/$BUILD_ID
+
+- name: build-fission-binary-test-image
+  public: true
+  serial: true
+  plan:
+  - get: src
+    trigger: true
+  - task: lint-dockerfiles
+    file: src/ci/docker/lint/lint_dockerfile.yaml
+    params: 
+      SEARCH_PATH: "src/src/docker-images/fission/environments/binary/test"    
+  - put: docker-image-binary-test
+    params:
+      build: src/src/docker-images/fission/environments/binary
+      dockerfile: src/src/docker-images/fission/environments/binary/test/Dockerfile
+      tag: src/src/docker-images/fission/environments/binary/test/tag
+  - put: slack-alert-infra
+    params:
+      text: |
+        We tested and built several Docker images for the infrastructure. See at: 
+        https://concourse.((domain))/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+        or at:
+        https://concourse.((domain))/builds/$BUILD_ID
 

@@ -2,12 +2,19 @@
 
 MYNAME="$(readlink -f $0)"
 MYDIR="$(dirname ${MYNAME})"
+CURRENT_DIR="$(pwd)"
 
-python3 server.py &
+python3 /app/server.py &
 
-find /userfunc -name "*.py" -exec cp {} /userfunc/user \;
+[ -d /userfunc ] || { 
+	echo "${CURRENT_DIR}"
+	ls -l
+	ln -sf "${CURRENT_DIR}/src" /userfunc
+}
 
-sleep 3
+find /userfunc -maxdepth 1 -name "*.py" -exec ln -sf {} /userfunc/user \;
+
+sleep 2
 
 # First we need to perform the Specialize Option
 curl -sL -XPOST http://localhost:8888/specialize && {
@@ -19,4 +26,4 @@ curl -sL -XPOST http://localhost:8888/specialize && {
 
 newman run /userfunc/ci/collection.json
 
-rm -f /userfunc/user && exit 0
+rm -f /userfunc/user /userfunc/__* 

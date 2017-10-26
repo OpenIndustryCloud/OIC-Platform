@@ -10,7 +10,7 @@ MYDIR="$(dirname ${MYNAME})"
 	ln -sf "${CURRENT_DIR}/src" /userfunc
 }
 
-find /userfunc -maxdepth 1 -name "*.go" -exec go build -buildmode=plugin -o /userfunc/user $filename {} \;
+find /userfunc -maxdepth 1 -name "*.bin" -exec ln -sf {} /userfunc/user \;
 
 sleep 1
 
