@@ -61,7 +61,9 @@ WORKDIR /go/src/app
 COPY context	    ./context
 COPY server.go   ./server.go
 
-RUN chmod +x /usr/local/bin/go-wrapper && \
+RUN sleep 1 && \
+    chmod +x /usr/local/bin/go-wrapper && \
+    sleep 1 && \
     go-wrapper download && \
     go-wrapper install && \
     go build -o /server server.go && \
