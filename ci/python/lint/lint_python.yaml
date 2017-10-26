@@ -13,7 +13,7 @@ inputs:
 
 run:
   # path: ls src
-  path: src/workflows/fission/cho/ci/lint_python.sh
+  path: /code/src/workflows/fission/cho/ci/lint_python.sh
 
 
 
