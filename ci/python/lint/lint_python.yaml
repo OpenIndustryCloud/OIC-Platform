@@ -11,5 +11,5 @@ inputs:
 - name: src
 
 run:
-  path: flake8 ./
+  path: /usr/local/bin/flake8 src/src/workflows/echo/
 
