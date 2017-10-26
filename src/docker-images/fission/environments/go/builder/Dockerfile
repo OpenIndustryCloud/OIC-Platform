@@ -1,4 +1,4 @@
-FROM golang:1.8-alpine3.6
+FROM golang:1.8.1
 
 ENV GOPATH /usr
 RUN go get github.com/fission/fission
