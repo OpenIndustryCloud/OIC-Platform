@@ -9,10 +9,11 @@ image_resource:
 
 inputs:
 - name: src
+  path: code
 
 run:
-  path: ls src
-  # path: src/src/workflows/echo/ci/lint_python.sh
+  # path: ls src
+  path: code/src/workflows/echo/ci/lint_python.sh
 
 
 
