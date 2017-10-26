@@ -9,8 +9,7 @@ image_resource:
 
 inputs:
 - name: src
-  path: /code
 
 run:
-  path: ls
+  path: flake8 src/src/workflows/fission/echo/
 
