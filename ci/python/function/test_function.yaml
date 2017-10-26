@@ -4,7 +4,10 @@ platform: linux
 image_resource:
   type: docker-image
   source:
-    repository: gcr.io/landg-179815/python-env
+    email: ((docker-gcr-email))
+    username: ((docker-gcr-username))
+    password: ((docker-gcr-password))
+    repository: ((docker-gcr-root))/((docker-image-python-env))
     tag: 'test'
 
 inputs:
