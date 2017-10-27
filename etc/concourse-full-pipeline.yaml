@@ -16,6 +16,7 @@ groups:
   jobs:
   - fission-python-echo
   - fission-nodejs-form-to-json
+  - fission-go-form-req-processor
 - name: python-pipeline
   jobs: 
   - build-fission-python-test-image
