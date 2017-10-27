@@ -11,7 +11,6 @@ CURRENT_DIR="$(pwd)"
 	ls -lR /userfunc
 }
 
-
 find /userfunc -maxdepth 1 -name "*.js" -exec ln -sf {} /userfunc/user \;
 
 node /usr/src/app/server.js --port 8888 &

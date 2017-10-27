@@ -1,9 +1,9 @@
 name: echo
 version: 0.1.0
 description: Basic function that repeats whatever we give it as an entry
-home: github.com/OpenIndustryCloud/function-echo
+home: https://github.com/OpenIndustryCloud/function-echo
 sources:
-  - Agithub.com/OpenIndustryCloud/function-echo
+  - https://github.com/OpenIndustryCloud/function-echo
 maintainers: 
   - name: Samuel Cozannet
     email: samuel.cozannet@madeden.com  

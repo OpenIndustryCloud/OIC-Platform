@@ -7,8 +7,6 @@ MYDIR="$(dirname ${MYNAME})"
 CURRENT_DIR="$(pwd)"
 
 [ -d /userfunc ] || { 
-	echo "${CURRENT_DIR}"
-	ls -lR src
 	cp -r "${CURRENT_DIR}/src/${FUNCTION_PATH}" /userfunc
 	ls -lR /userfunc
 }

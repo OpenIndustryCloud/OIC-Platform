@@ -1,7 +1,7 @@
 groups:
 - name: functions
   jobs:
-  - python-echo
+  - fission-python-echo
 
 resource_types:
 # https://github.com/cloudfoundry-community/slack-notification-resource
@@ -48,7 +48,7 @@ resources:
 #     tag: test
 
 jobs:  
-- name: python-echo
+- name: fission-python-echo
   public: true
   serial: true
   plan:

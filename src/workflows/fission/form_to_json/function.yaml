@@ -1,0 +1,12 @@
+name: form-to-json
+version: 0.1.0
+description: Basic function that takes a URL encoded input and converts it into JSON
+home: https://github.com/OpenIndustryCloud/function-form-to-json
+sources:
+  - https://github.com/OpenIndustryCloud/function-form-to-json
+maintainers: 
+  - name: Samuel Cozannet
+    email: samuel.cozannet@madeden.com  
+environment: 
+  - name: nodejs
+    image: fission/nodejs-env:0.3.0

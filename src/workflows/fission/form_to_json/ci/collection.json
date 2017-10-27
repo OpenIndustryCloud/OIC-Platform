@@ -1,13 +1,13 @@
 {
 	"info": {
-		"name": "echo",
-		"_postman_id": "d300a4bf-44ab-8021-f041-1252bc19622d",
+		"name": "form-to-json",
+		"_postman_id": "cf85c9c1-1c99-f1fb-e95e-617ea0ad044e",
 		"description": "",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
 		{
-			"name": "echo",
+			"name": "form-to-json",
 			"event": [
 				{
 					"listen": "test",
@@ -22,10 +22,12 @@
 							"    pm.response.to.be.json;",
 							"})",
 							"",
-							"pm.test(\"Echo - Response equals Query\", function () {",
+							"pm.test(\"Echo - Response confirm to Query\", function () {",
 							"    var jsonData = pm.response.json();",
-							"    var expectedResult = pm.environment.get(\"test-string\");",
-							"    pm.expect(jsonData.test).to.eql(expectedResult);",
+							"    var expectedResult = pm.environment.get(\"value1\");",
+							"    var expectedResult2 = pm.environment.get(\"value2\");",
+							"    pm.expect(jsonData.value1).to.eql(expectedResult);",
+							"    pm.expect(jsonData.value2).to.eql(expectedResult2);",
 							"});",
 							""
 						]
@@ -36,7 +38,8 @@
 					"script": {
 						"type": "text/javascript",
 						"exec": [
-							"pm.environment.set(\"test-string\", \"echo test\");",
+							"pm.environment.set(\"value1\", \"key1\");",
+							"pm.environment.set(\"value2\", \"key2\");",
 							""
 						]
 					}
@@ -47,12 +50,25 @@
 				"header": [
 					{
 						"key": "Content-Type",
-						"value": "application/json"
+						"value": "application/x-www-form-urlencoded"
 					}
 				],
 				"body": {
-					"mode": "raw",
-					"raw": "{ \"test\": \"{{test-string}}\" } "
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "value1",
+							"value": "{{value1}}",
+							"description": "",
+							"type": "text"
+						},
+						{
+							"key": "value2",
+							"value": "{{value2}}",
+							"description": "",
+							"type": "text"
+						}
+					]
 				},
 				"url": {
 					"raw": "http://localhost:8888",
@@ -66,7 +82,7 @@
 			},
 			"response": [
 				{
-					"id": "c75e1a9d-bee9-4d73-8843-eae081531d7a",
+					"id": "bf1dab5a-1f50-4519-8e35-28d9a900e550",
 					"name": "echo-test",
 					"originalRequest": {
 						"method": "POST",
