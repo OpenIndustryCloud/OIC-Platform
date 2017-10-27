@@ -11,7 +11,12 @@ CURRENT_DIR="$(pwd)"
 	ls -lR /userfunc
 }
 
-find /userfunc -maxdepth 1 -name "*.go" -exec go build -buildmode=plugin -o /userfunc/user $filename {} \;
+find /userfunc \
+	-maxdepth 1 \
+	-mindepth 1 \
+	-name "*.go" -and \
+	-not -name "*test*" \
+	-exec go build -buildmode=plugin -o /userfunc/user {} \;
 
 /server &
 

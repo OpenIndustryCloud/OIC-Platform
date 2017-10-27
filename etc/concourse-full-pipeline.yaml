@@ -31,6 +31,7 @@ groups:
   - build-fission-go-test-image
   - build-fission-go-env-image
   - build-fission-go-builder-image
+  - fission-go-form-req-processor
 
 resource_types:
 # https://github.com/cloudfoundry-community/slack-notification-resource
@@ -51,7 +52,7 @@ resources:
   type: git
   source:
     uri: https://github.com/AmitKrVarman/fission-functions.git
-    branch: master
+    branch: tests
     disable_ci_skip: true
 - name: slack-alert-infra
   type: slack-notification
@@ -488,21 +489,22 @@ jobs:
           https://concourse.((domain))/builds/$BUILD_ID
 
 # Go Functions
-- name: fission-go-form-to-json
+- name: fission-go-form-req-processor
   public: true
   serial: true
   plan:
   - aggregate:   
-    - get: go-functions-amit
-      trigger: true
     - get: docker-image-go-test
       passed: [ build-fission-go-test-image ]
+  - get: go-functions-amit
+    trigger: true
   - task: newman-function
     image: docker-image-go-test
-    file: go-functions-amit/fission-functions/examples-go/form-req-processor/ci/
-    input_mapping: {src: go-functions-amit}
+    file: go-functions-amit/examples-go/form-req-processor/ci/test_function.yaml
+    input_mapping: 
+      src: go-functions-amit
     params:
-      FUNCTION_PATH: "src/workflows/fission/form_to_json"
+      FUNCTION_PATH: "examples-go/form-req-processor"
     on_success: 
       put: slack-alert-infra
       params:
