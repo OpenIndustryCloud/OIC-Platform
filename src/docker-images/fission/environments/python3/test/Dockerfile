@@ -13,7 +13,7 @@ RUN apk update && \
 		jq \
 		bash && \
 	pip3 install --upgrade pip && \
-	rm -r /root/.cache && \
+	rm -rf /root/.cache && \
 	rm -rf /var/cache/apk/*
 
 COPY . /app

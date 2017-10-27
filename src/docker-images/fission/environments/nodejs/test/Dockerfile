@@ -4,6 +4,13 @@ ARG NODE_ENV
 ENV NODE_ENV $NODE_ENV
 ENV FUNCTION_PATH="./"
 
+RUN apk update && \
+	apk add --no-cache \
+		curl \
+		jq \
+		bash && \
+	rm -rf /var/cache/apk/*
+
 RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app
 

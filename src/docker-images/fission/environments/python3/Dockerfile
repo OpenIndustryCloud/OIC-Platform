@@ -3,7 +3,7 @@ FROM alpine:3.6
 RUN apk update && \
 	apk add --no-cache python3 python3-dev build-base && \
 	pip3 install --upgrade pip && \
-	rm -r /root/.cache
+	rm -rf /root/.cache
 
 COPY . /app
 WORKDIR /app

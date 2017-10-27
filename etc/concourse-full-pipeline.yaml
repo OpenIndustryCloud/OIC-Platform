@@ -16,6 +16,17 @@ groups:
   jobs:
   - fission-python-echo
   - fission-nodejs-form-to-json
+- name: python-pipeline
+  jobs: 
+  - build-fission-python-test-image
+  - build-fission-python-env-image
+  - fission-python-echo
+- name: nodejs-pipeline
+  jobs: 
+  - build-fission-nodejs-test-image
+  - build-fission-nodejs-env-image
+  - fission-nodejs-form-to-json
+
 
 resource_types:
 # https://github.com/cloudfoundry-community/slack-notification-resource
