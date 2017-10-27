@@ -4,11 +4,13 @@ set -eux
 
 MYNAME="$(readlink -f $0)"
 MYDIR="$(dirname ${MYNAME})"
+CURRENT_DIR="$(pwd)"
 
 [ -d /userfunc ] || { 
-	echo "We start in ${CURRENT_DIR}"
-	ln -sf "${CURRENT_DIR}/src/${FUNCTION_PATH}" /userfunc
+	cp -r "${CURRENT_DIR}/src/${FUNCTION_PATH}" /userfunc
+	ls -lR /userfunc
 }
+
 
 find /userfunc -maxdepth 1 -name "*.js" -exec ln -sf {} /userfunc/user \;
 

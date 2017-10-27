@@ -4,15 +4,16 @@ set -eux
 
 MYNAME="$(readlink -f $0)"
 MYDIR="$(dirname ${MYNAME})"
-
-/server &
+CURRENT_DIR="$(pwd)"
 
 [ -d /userfunc ] || { 
-	echo "We start in ${CURRENT_DIR}"
-	ln -sf "${CURRENT_DIR}/src" /userfunc
+	cp -r "${CURRENT_DIR}/src/${FUNCTION_PATH}" /userfunc
+	ls -lR /userfunc
 }
 
 find /userfunc -maxdepth 1 -name "*.go" -exec go build -buildmode=plugin -o /userfunc/user $filename {} \;
+
+/server &
 
 sleep 1
 
