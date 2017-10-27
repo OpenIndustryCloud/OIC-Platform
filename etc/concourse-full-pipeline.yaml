@@ -26,7 +26,11 @@ groups:
   - build-fission-nodejs-test-image
   - build-fission-nodejs-env-image
   - fission-nodejs-form-to-json
-
+- name: go-pipeline
+  jobs: 
+  - build-fission-go-test-image
+  - build-fission-go-env-image
+  - build-fission-go-builder-image
 
 resource_types:
 # https://github.com/cloudfoundry-community/slack-notification-resource
@@ -41,6 +45,12 @@ resources:
   type: git
   source:
     uri: https://github.com/OpenIndustryCloud/OIC-Platform.git
+    branch: master
+    disable_ci_skip: true
+- name: go-functions-amit
+  type: git
+  source:
+    uri: https://github.com/AmitKrVarman/fission-functions.git
     branch: master
     disable_ci_skip: true
 - name: slack-alert-infra
@@ -125,7 +135,6 @@ jobs:
 # Update Python Images
 - name: build-fission-python-env-image
   public: true
-  serial: true
   plan:
   - get: src
     trigger: true
@@ -156,7 +165,6 @@ jobs:
 
 - name: build-fission-python-test-image
   public: true
-  serial: true
   plan:
   - get: src
     trigger: true
@@ -190,7 +198,6 @@ jobs:
 # Update Go images
 - name: build-fission-go-env-image
   public: true
-  serial: true
   plan:
   - get: src
     trigger: true
@@ -221,7 +228,6 @@ jobs:
 
 - name: build-fission-go-builder-image
   public: true
-  serial: true
   plan:
   - get: src
     trigger: true
@@ -252,7 +258,6 @@ jobs:
 
 - name: build-fission-go-test-image
   public: true
-  serial: true
   plan:
   - get: src
     trigger: true
@@ -286,7 +291,6 @@ jobs:
 # Update nodejs images
 - name: build-fission-nodejs-env-image
   public: true
-  serial: true
   plan:
   - get: src
     trigger: true
@@ -317,7 +321,6 @@ jobs:
 
 - name: build-fission-nodejs-test-image
   public: true
-  serial: true
   plan:
   - get: src
     trigger: true
@@ -351,7 +354,6 @@ jobs:
 # Update Binary Image
 - name: build-fission-binary-env-image
   public: true
-  serial: true
   plan:
   - get: src
     trigger: true
@@ -382,7 +384,6 @@ jobs:
 
 - name: build-fission-binary-test-image
   public: true
-  serial: true
   plan:
   - get: src
     trigger: true
@@ -421,11 +422,12 @@ jobs:
 # Python Functions
 - name: fission-python-echo
   public: true
-  serial: true
   plan:
-  - get: src
-    trigger: true
-  - get: docker-image-python-test
+  - aggregate:   
+    - get: src
+      trigger: true
+    - get: docker-image-python-test
+      passed: [ build-fission-python-test-image ]
   - task: lint-python
     file: src/ci/python/lint/lint_python.yaml
   - task: newman-function
@@ -457,9 +459,11 @@ jobs:
   public: true
   serial: true
   plan:
-  - get: src
-    trigger: true
-  - get: docker-image-nodejs-test
+  - aggregate:   
+    - get: src
+      trigger: true
+    - get: docker-image-nodejs-test
+      passed: [ build-fission-nodejs-test-image ]
   - task: newman-function
     image: docker-image-nodejs-test
     file: src/ci/nodejs/function/test_function.yaml
@@ -482,3 +486,37 @@ jobs:
           https://concourse.((domain))/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
           or at:
           https://concourse.((domain))/builds/$BUILD_ID
+
+# Go Functions
+- name: fission-go-form-to-json
+  public: true
+  serial: true
+  plan:
+  - aggregate:   
+    - get: go-functions-amit
+      trigger: true
+    - get: docker-image-go-test
+      passed: [ build-fission-go-test-image ]
+  - task: newman-function
+    image: docker-image-go-test
+    file: go-functions-amit/fission-functions/examples-go/form-req-processor/ci/
+    input_mapping: {src: go-functions-amit}
+    params:
+      FUNCTION_PATH: "src/workflows/fission/form_to_json"
+    on_success: 
+      put: slack-alert-infra
+      params:
+        text: |
+          We successfully tested a function for the infrastructure. See at: 
+          https://concourse.((domain))/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+          or at:
+          https://concourse.((domain))/builds/$BUILD_ID
+    on_failure: 
+      put: slack-alert-infra
+      params:
+        text: |
+          WARNING Tests do not pass on a function. See at: 
+          https://concourse.((domain))/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+          or at:
+          https://concourse.((domain))/builds/$BUILD_ID
+

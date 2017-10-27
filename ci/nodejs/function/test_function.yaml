@@ -3,8 +3,6 @@ platform: linux
 
 inputs:
 - name: src
-  # path: /userfunc
-
 
 run:
   path: /test.sh
