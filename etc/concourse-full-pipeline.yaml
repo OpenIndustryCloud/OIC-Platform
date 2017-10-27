@@ -15,6 +15,7 @@ groups:
 - name: fission-functions
   jobs:
   - fission-python-echo
+  - fission-nodejs-form-to-json
 
 resource_types:
 # https://github.com/cloudfoundry-community/slack-notification-resource
@@ -450,7 +451,7 @@ jobs:
   - get: docker-image-nodejs-test
   - task: newman-function
     image: docker-image-nodejs-test
-    file: src/ci/python/function/test_function.yaml
+    file: src/ci/nodejs/function/test_function.yaml
     input_mapping: {src: src}
     params:
       FUNCTION_PATH: "src/workflows/fission/form_to_json"

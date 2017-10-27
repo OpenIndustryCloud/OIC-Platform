@@ -13,4 +13,4 @@ We apply a simple bash script that will run a query against the code after speci
 
 # Docker Image
 
-We use a custom image based on the Fission Env, customized with our own set of requirements. You can check the code [here](/src/docker-images/fission/environments/python3/test/Dockerfile)
+We use a custom image based on the Fission Env, customized with our own set of requirements. You can check the code [here](/src/docker-images/fission/environments/nodejs/test/Dockerfile)

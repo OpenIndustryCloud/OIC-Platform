@@ -28,4 +28,4 @@ curl -sL -XPOST http://localhost:8888/specialize && {
 
 newman run /userfunc/ci/collection.json
 
-rm -f /userfunc/user
+rm -rf /userfunc/user /userfunc/node_modules

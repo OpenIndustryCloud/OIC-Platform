@@ -1,19 +1,8 @@
 ---
 platform: linux
 
-# image_resource:
-#   type: docker-image
-#   source:
-#     email: ((docker-gcr-email))
-#     username: ((docker-gcr-username))
-#     password: ((docker-gcr-password))
-#     repository: ((docker-gcr-root))/((docker-image-python-env))
-#     tag: 'test'
-
 inputs:
 - name: src
-  # path: /userfunc
-
 
 run:
   path: /test.sh
