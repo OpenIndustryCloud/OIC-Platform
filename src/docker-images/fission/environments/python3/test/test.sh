@@ -11,7 +11,7 @@ python3 /app/server.py &
 [ -d /userfunc ] || { 
 	echo "${CURRENT_DIR}"
 	ls -l
-	ln -sf "${CURRENT_DIR}/src" /userfunc
+	ln -sf "${CURRENT_DIR}/src/${FUNCTION_PATH}" /userfunc
 }
 
 find /userfunc -maxdepth 1 -name "*.py" -exec ln -sf {} /userfunc/user \;

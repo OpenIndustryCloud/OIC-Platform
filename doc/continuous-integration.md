@@ -34,7 +34,7 @@ Note that we could have used a LoadBalancer. However LB are construct that map d
 
 At this point you need to download the CLI tools for Concourse using the landing page. More about this [in the official documentation](https://github.com/concourse/fly)
 
-Note that the CA will not be recognized by the OS. To download the CA from the website, you can do
+Note that the CA from KubeLego will not be trusted with the demo account. To download the CA from the website and let Concourse trust it, do: 
 
 <pre><code>
 openssl s_client -servername concourse.${DOMAIN} \
@@ -44,7 +44,7 @@ openssl s_client -servername concourse.${DOMAIN} \
    > ca-concourse.pem
 </code></pre>
 
-Then you can login with 
+Then login with 
 
 <pre><code>
 fly -t ${PROJECT_NAME} login -c https://concourse.${DOMAIN} --ca-cert ca-concourse.pem

@@ -2,6 +2,7 @@ FROM node:8-alpine
 
 ARG NODE_ENV
 ENV NODE_ENV $NODE_ENV
+ENV FUNCTION_PATH="./"
 
 RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app

@@ -256,6 +256,12 @@ sed s#ThisIsALongToken#${LOGZIO_TOKEN}#g etc/fluentd-manifest.yaml > /tmp/fluent
 kubectl create -f /tmp/fluentd-manifest.yaml
 </code></pre>
 
+# Next steps 
+
+At this stage we have setup a first infrastructure layer. 
+
+Now we can move to [installing the CI/CI pipeline, Concourse](./continuous-integration.md). 
+
 
 
 

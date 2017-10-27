@@ -1,11 +1,11 @@
 # Open Industry Cloud Platform
 ## Introduction
 
-Welcome to the Open Industry Cloud platform. The goal of this project is to develop and open source a standard Open Source application platform for the Insurance industry. For InsurTech startups, it is a mean to accelerate development by focusing on their wits and added value. For historical players, it aims at speeding up product development and bring Google speed to the world of insurance. 
+Welcome to the Open Industry Cloud (OIC) project. Our goal is to make public our research to build a sustainable Kubernetes based platform to develop and operate a new breed of InsureTech applications.
 
 ## Components
 
-Similar to classic PaaS solutions, this solution will provide
+When complete we envision this solution to provide
 
 * Code Hosting
 * Continuous Integration
@@ -17,32 +17,26 @@ Similar to classic PaaS solutions, this solution will provide
 * Monitoring
 * Service Mesh
 * Service Catalog
-  * Object Storage 
-  * Columnar DataStore 
-  * SQL DataStore 
-  * JSON DataStore 
+  * Object Storage
+  * KV Store
   * Other Applications (Fraud Analysis, Anomaly Detection...)
 * Identity Management
+* Serverless functionality
 * Billing 
-
-Because it is focused on the insurance business, specific focus is given to 
-
-* Security 
-* Data Management
 
 ## Quick Start
 
-This platform can be deployed on GKE to start experimenting. Follow our [Quick Start](/doc/quickstart.md) for more information. 
+We use GKE as our experimental infrastructure. Follow our [Quick Start](/doc/quickstart.md) for more information. 
 
-If you do not have a Google Cloud account then you can use any distribution of Kubernetes of your liking and use the Helm Charts provided here. See [Deploying with Helm](/doc/deploying-with-helm.md)
+[TBD] If you do not have a Google Cloud account then you can use any distribution of Kubernetes of your liking and use the Helm Charts provided here. See [Deploying with Helm](/doc/deploying-with-helm.md)
 
 ## Architecture
 
-The requirements for this project we fairly simple. Everything must be open source with an acceptable licence. In addition, individual components must have a commercial support entity available in order to move to production.
+The requirements for this project we fairly simple. Everything must be open source with an acceptable licence (MIT or Apache). In addition, individual components must have a commercial support entity available in order to move to production.
 
 More information about the architecture [here](/doc/architecture.md)
 
-## License
+## CLA
 
-TBD: This project is under the [MIT License](https://opensource.org/licenses/MIT)
+To participate in this project you must sign the attached CLA.
 

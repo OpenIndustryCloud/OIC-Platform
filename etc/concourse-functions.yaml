@@ -61,6 +61,8 @@ jobs:
     image: docker-image-python-test
     file: src/ci/python/function/test_function.yaml
     input_mapping: {src: src}
+    params:
+      FUNCTION_PATH: "src/workflows/fission/echo"
     on_success: 
       put: slack-alert-infra
       params:

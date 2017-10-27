@@ -4,6 +4,7 @@ FROM node:8-alpine
 RUN apk add --no-cache ca-certificates
 
 ENV GOLANG_VERSION 1.8.4
+ENV FUNCTION_PATH="./"
 
 # https://golang.org/issue/14851 (Go 1.8 & 1.7)
 # https://golang.org/issue/17847 (Go 1.7)

@@ -1,5 +1,7 @@
 FROM node:8-alpine
 
+ENV FUNCTION_PATH="./"
+
 RUN npm install -g newman && \
 	npm cache clean --force
 

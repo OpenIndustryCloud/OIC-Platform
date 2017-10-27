@@ -9,7 +9,7 @@ MYDIR="$(dirname ${MYNAME})"
 
 [ -d /userfunc ] || { 
 	echo "We start in ${CURRENT_DIR}"
-	ln -sf "${CURRENT_DIR}/src" /userfunc
+	ln -sf "${CURRENT_DIR}/src/${FUNCTION_PATH}" /userfunc
 }
 
 find /userfunc -maxdepth 1 -name "*.bin" -exec ln -sf {} /userfunc/user \;
