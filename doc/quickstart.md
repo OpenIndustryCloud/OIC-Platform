@@ -258,9 +258,12 @@ kubectl create -f /tmp/fluentd-manifest.yaml
 
 # Next steps 
 
-At this stage we have setup a first infrastructure layer. 
+At this stage we have setup a first infrastructure layer. Now we can: 
 
-Now we can move to [installing the CI/CI pipeline, Concourse](./continuous-integration.md). 
+* Look into [installing the CI/CI pipeline, Concourse](./continuous-integration.md). 
+* Setup the [Serverless environment](./serverless.md)
+
+
 
 
 

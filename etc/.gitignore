@@ -1,2 +1,4 @@
 ca-concourse.pem
+*.pem
+*_key
 

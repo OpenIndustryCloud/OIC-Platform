@@ -13,7 +13,7 @@ image: concourse/concourse
 ## Concourse image version.
 ## ref: https://hub.docker.com/r/concourse/concourse/tags/
 ##
-imageTag: "3.3.2"
+imageTag: "3.5.0"
 
 ## Specify a imagePullPolicy: 'Always' if imageTag is 'latest', else set to 'IfNotPresent'.
 ## ref: https://kubernetes.io/docs/user-guide/images/#pre-pulling-images
@@ -295,8 +295,8 @@ web:
   ##
   resources:
     requests:
-      cpu: "100m"
-      memory: "128Mi"
+      cpu: "300m"
+      memory: "256Mi"
 
   ## Service configuration.
   ## ref: https://kubernetes.io/docs/user-guide/services/
@@ -325,7 +325,7 @@ web:
     ## Must be provided if Ingress is enabled.
     ##
     hosts:
-       - concourse.DOMAIN
+       - concourse.landg.madeden.net
 
     ## TLS configuration.
     ## Secrets must be manually created in the namespace.
@@ -333,7 +333,7 @@ web:
     tls:
       - secretName: concourse-web-tls
         hosts:
-          - concourse.DOMAIN
+          - concourse.landg.madeden.net
 
 ## Configuration values for Concourse Worker components.
 ##
@@ -344,7 +344,7 @@ worker:
 
   ## Number of replicas.
   ##
-  replicas: 2
+  replicas: 4
 
   ## Minimun number of workers available after an eviction
   ## ref: https://kubernetes.io/docs/admin/disruptions/
@@ -356,7 +356,7 @@ worker:
   ##
   resources:
     requests:
-      cpu: "100m"
+      cpu: "200m"
       memory: "512Mi"
 
   ## Annotations to be added to the worker pods.

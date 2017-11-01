@@ -1,0 +1,120 @@
+groups:
+- name: infra
+  jobs: 
+  - build-docker-fission-cli
+  - build-docker-newman
+
+resource_types:
+# https://github.com/cloudfoundry-community/slack-notification-resource
+- name: slack-notification
+  type: docker-image
+  source:
+    repository: cfcommunity/slack-notification-resource
+    tag: latest
+
+resources:
+- name: docker-images-src
+  type: git
+  source:
+    uri: https://github.com/OpenIndustryCloud/docker-images.git
+    branch: master
+    disable_ci_skip: true
+- name: oic-ci-tasks-src
+  type: git
+  source:
+    uri: https://github.com/OpenIndustryCloud/oic-ci-tasks
+    branch: master
+    disable_ci_skip: true
+
+- name: slack-alert-infra
+  type: slack-notification
+  source:
+    url: ((slack-url-infra))
+- name: slack-alert-buildbot
+  type: slack-notification
+  source:
+    url: ((slack-url-buildbot))
+
+- name: docker-image-fission-cli
+  type: docker-image
+  source:
+    email: ((docker-gcr-email))
+    username: ((docker-gcr-username))
+    password: ((docker-gcr-password))
+    repository: ((docker-gcr-root))/((docker-image-fission-cli))
+- name: docker-image-newman
+  type: docker-image
+  source:
+    email: ((docker-gcr-email))
+    username: ((docker-gcr-username))
+    password: ((docker-gcr-password))
+    repository: ((docker-gcr-root))/((docker-image-newman))
+
+jobs:
+# Infrastructure images
+- name: build-docker-fission-cli
+  public: true
+  plan:
+  - get: docker-images-src
+    trigger: true
+  - get: oic-ci-tasks-src
+  - task: lint-dockerfiles
+    file: oic-ci-tasks-src/docker/lint/lint_dockerfile.yaml
+    params: 
+      SEARCH_PATH: "docker-src/fission/cli"
+    input_mapping: 
+      src: oic-ci-tasks-src
+      docker-src: docker-images-src
+  - put: docker-image-fission-cli
+    params:
+      build: docker-images-src/fission/cli
+    on_success: 
+      put: slack-alert-buildbot
+      params:
+        text: |
+          We tested, built and published a new Docker image for the infrastructure. See at: 
+          https://concourse.((domain))/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+          or at:
+          https://concourse.((domain))/builds/$BUILD_ID
+    on_failure: 
+      put: slack-alert-infra
+      params:
+        text: |
+          Sorry, we failed to publish a new Docker image for the infrastructure. See at: 
+          https://concourse.((domain))/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+          or at:
+          https://concourse.((domain))/builds/$BUILD_ID
+
+- name: build-docker-newman
+  public: true
+  plan:
+  - get: docker-images-src
+    trigger: true
+  - get: oic-ci-tasks-src
+  - task: lint-dockerfiles
+    file: oic-ci-tasks-src/docker/lint/lint_dockerfile.yaml
+    params: 
+      SEARCH_PATH: "docker-src/newman"
+    input_mapping: 
+      src: oic-ci-tasks-src
+      docker-src: docker-images-src
+  - put: docker-image-newman
+    params:
+      build: docker-images-src/newman
+    on_success: 
+      put: slack-alert-buildbot
+      params:
+        text: |
+          We tested, built and published a new Docker image for the infrastructure. See at: 
+          https://concourse.((domain))/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+          or at:
+          https://concourse.((domain))/builds/$BUILD_ID
+    on_failure: 
+      put: slack-alert-infra
+      params:
+        text: |
+          Sorry, we failed to publish a new Docker image for the infrastructure. See at: 
+          https://concourse.((domain))/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+          or at:
+          https://concourse.((domain))/builds/$BUILD_ID
+
