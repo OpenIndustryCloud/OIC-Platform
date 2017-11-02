@@ -1,57 +1,45 @@
 groups:
-- name: docker-all
-  jobs:
-  - build-fission-python-env-image
-  - build-fission-go-env-image
-  - build-fission-go-builder-image
-  - build-fission-nodejs-env-image
-  - build-fission-binary-env-image
-  - build-fission-python-test-image
-  - build-fission-go-test-image
-  - build-fission-nodejs-test-image
-  - build-fission-binary-test-image
-  - build-docker-fission-cli
-  - build-docker-newman
-- name: docker-env
-  jobs:
-  - build-fission-python-env-image
-  - build-fission-go-env-image
-  - build-fission-go-builder-image
-  - build-fission-nodejs-env-image
-  - build-fission-binary-env-image
-- name: docker-test
-  jobs: 
-  - build-fission-python-test-image
-  - build-fission-go-test-image
-  - build-fission-nodejs-test-image
-  - build-fission-binary-test-image
-- name: all-functions
-  jobs:
-  - fission-python-echo
-  - fission-nodejs-form-to-json
-  - fission-go-form-req-processor
-  - fission-python-echo-read-secret
-- name: python
-  jobs: 
-  - build-fission-python-test-image
-  - build-fission-python-env-image
-  - fission-python-echo
-  - fission-python-echo-read-secret
-- name: nodejs
-  jobs: 
-  - build-fission-nodejs-test-image
-  - build-fission-nodejs-env-image
-  - fission-nodejs-form-to-json
-- name: go
-  jobs: 
-  - build-fission-go-test-image
-  - build-fission-go-env-image
-  - build-fission-go-builder-image
-  - fission-go-form-req-processor
 - name: infra
   jobs: 
   - build-docker-fission-cli
   - build-docker-newman
+- name: envs
+  jobs:
+  - update-python-env
+  - update-go-env
+  - build-fission-go-builder-image
+  - update-nodejs-env
+  - update-binary-env
+  # - build-fission-python-test-image
+  # - build-fission-go-test-image
+  # - build-fission-nodejs-test-image
+  # - build-fission-binary-test-image
+# - name: docker-test
+#   jobs: 
+#   - build-fission-python-test-image
+#   - build-fission-go-test-image
+#   - build-fission-nodejs-test-image
+#   - build-fission-binary-test-image
+- name: all-functions
+  jobs:
+  - fission-python-echo
+  - fission-nodejs-form-to-json
+  # - fission-go-form-req-processor
+  - fission-python-echo-read-secret
+- name: python
+  jobs: 
+  # - build-fission-python-test-image
+  - fission-python-echo
+  - fission-python-echo-read-secret
+- name: nodejs
+  jobs: 
+  # - build-fission-nodejs-test-image
+  - fission-nodejs-form-to-json
+- name: go
+  jobs: 
+  # - build-fission-go-test-image
+  - build-fission-go-builder-image
+  # - fission-go-form-req-processor
 
 resource_types:
 # https://github.com/cloudfoundry-community/slack-notification-resource
@@ -86,12 +74,12 @@ resources:
 #     uri: https://github.com/OpenIndustryCloud/OIC-Platform.git
 #     branch: master
 #     disable_ci_skip: true
-- name: go-functions-amit
-  type: git
-  source:
-    uri: https://github.com/AmitKrVarman/fission-functions.git
-    branch: tests
-    disable_ci_skip: true
+# - name: go-functions-amit
+#   type: git
+#   source:
+#     uri: https://github.com/AmitKrVarman/fission-functions.git
+#     branch: tests
+#     disable_ci_skip: true
 - name: slack-alert-infra
   type: slack-notification
   source:
@@ -114,14 +102,14 @@ resources:
     username: ((docker-gcr-username))
     password: ((docker-gcr-password))
     repository: ((docker-gcr-root))/((docker-image-newman))
-- name: docker-image-python-test
-  type: docker-image
-  source:
-    email: ((docker-gcr-email))
-    username: ((docker-gcr-username))
-    password: ((docker-gcr-password))
-    repository: ((docker-gcr-root))/((docker-image-python-env))
-    tag: test
+# - name: docker-image-python-test
+#   type: docker-image
+#   source:
+#     email: ((docker-gcr-email))
+#     username: ((docker-gcr-username))
+#     password: ((docker-gcr-password))
+#     repository: ((docker-gcr-root))/((docker-image-python-env))
+#     tag: test
 - name: docker-image-python-env
   type: docker-image
   source:
@@ -130,14 +118,14 @@ resources:
     password: ((docker-gcr-password))
     repository: ((docker-gcr-root))/((docker-image-python-env))
     tag: latest
-- name: docker-image-go-test
-  type: docker-image
-  source:
-    email: ((docker-gcr-email))
-    username: ((docker-gcr-username))
-    password: ((docker-gcr-password))
-    repository: ((docker-gcr-root))/((docker-image-go-env))
-    tag: test
+# - name: docker-image-go-test
+#   type: docker-image
+#   source:
+#     email: ((docker-gcr-email))
+#     username: ((docker-gcr-username))
+#     password: ((docker-gcr-password))
+#     repository: ((docker-gcr-root))/((docker-image-go-env))
+#     tag: test
 - name: docker-image-go-env
   type: docker-image
   source:
@@ -154,14 +142,14 @@ resources:
     password: ((docker-gcr-password))
     repository: ((docker-gcr-root))/((docker-image-go-builder))
     tag: latest
-- name: docker-image-nodejs-test
-  type: docker-image
-  source:
-    email: ((docker-gcr-email))
-    username: ((docker-gcr-username))
-    password: ((docker-gcr-password))
-    repository: ((docker-gcr-root))/((docker-image-nodejs-env))
-    tag: test
+# - name: docker-image-nodejs-test
+#   type: docker-image
+#   source:
+#     email: ((docker-gcr-email))
+#     username: ((docker-gcr-username))
+#     password: ((docker-gcr-password))
+#     repository: ((docker-gcr-root))/((docker-image-nodejs-env))
+#     tag: test
 - name: docker-image-nodejs-env
   type: docker-image
   source:
@@ -170,14 +158,14 @@ resources:
     password: ((docker-gcr-password))
     repository: ((docker-gcr-root))/((docker-image-nodejs-env))
     tag: latest
-- name: docker-image-binary-test
-  type: docker-image
-  source:
-    email: ((docker-gcr-email))
-    username: ((docker-gcr-username))
-    password: ((docker-gcr-password))
-    repository: ((docker-gcr-root))/((docker-image-binary-env))
-    tag: test
+# - name: docker-image-binary-test
+#   type: docker-image
+#   source:
+#     email: ((docker-gcr-email))
+#     username: ((docker-gcr-username))
+#     password: ((docker-gcr-password))
+#     repository: ((docker-gcr-root))/((docker-image-binary-env))
+#     tag: test
 - name: docker-image-binary-env
   type: docker-image
   source:
@@ -189,12 +177,13 @@ resources:
 
 jobs:
 # Update Python Images
-- name: build-fission-python-env-image
+- name: update-python-env
   public: true
   plan:
   - get: docker-images-src
     trigger: true
   - get: oic-ci-tasks-src
+  - get: docker-image-fission-cli
   - task: lint-dockerfiles
     file: oic-ci-tasks-src/docker/lint/lint_dockerfile.yaml
     params: 
@@ -205,11 +194,22 @@ jobs:
   - put: docker-image-python-env
     params:
       build: docker-images-src/fission/environments/python3
+  - task: update-env
+    image: docker-image-fission-cli
+    file: oic-ci-tasks-src/env/update/update_env.yaml
+    input_mapping: 
+      task-src: oic-ci-tasks-src
+    params: 
+      FUNCTION_ENVIRONMENT: python
+      FUNCTION_IMAGE: ((docker-gcr-root))/((docker-image-python-env)):latest
+      # BUILDER_IMAGE: fission/go-env:builder
+      FISSION_ROUTER: ((fission-router))
+      FISSION_URL: ((fission-url))
     on_success: 
       put: slack-alert-buildbot
       params:
         text: |
-          We tested, built and published a new Docker image for the infrastructure. See at: 
+          We updated a fission environment. See at: 
           https://concourse.((domain))/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
           or at:
           https://concourse.((domain))/builds/$BUILD_ID
@@ -217,53 +217,54 @@ jobs:
       put: slack-alert-infra
       params:
         text: |
-          Sorry, we failed to publish a new Docker image for the infrastructure. See at: 
+          Sorry, we failed to update the environment. See at: 
           https://concourse.((domain))/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
           or at:
           https://concourse.((domain))/builds/$BUILD_ID
 
-- name: build-fission-python-test-image
-  public: true
-  plan:
-  - get: docker-images-src
-    trigger: true
-  - get: oic-ci-tasks-src
-  - task: lint-dockerfiles
-    file: oic-ci-tasks-src/docker/lint/lint_dockerfile.yaml
-    params: 
-      SEARCH_PATH: "docker-src/fission/environments/python3/test"    
-    input_mapping: 
-      src: oic-ci-tasks-src
-      docker-src: docker-images-src
-  - put: docker-image-python-test
-    params:
-      build: docker-images-src/fission/environments/python3
-      dockerfile: docker-images-src/fission/environments/python3/test/Dockerfile
-      tag: docker-images-src/fission/environments/python3/test/tag
-    on_success: 
-      put: slack-alert-buildbot
-      params:
-        text: |
-          We tested, built and published a new Docker image for the infrastructure. See at: 
-          https://concourse.((domain))/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
-          or at:
-          https://concourse.((domain))/builds/$BUILD_ID
-    on_failure: 
-      put: slack-alert-infra
-      params:
-        text: |
-          Sorry, we failed to publish a new Docker image for the infrastructure. See at: 
-          https://concourse.((domain))/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
-          or at:
-          https://concourse.((domain))/builds/$BUILD_ID
+# - name: build-fission-python-test-image
+#   public: true
+#   plan:
+#   - get: docker-images-src
+#     trigger: true
+#   - get: oic-ci-tasks-src
+#   - task: lint-dockerfiles
+#     file: oic-ci-tasks-src/docker/lint/lint_dockerfile.yaml
+#     params: 
+#       SEARCH_PATH: "docker-src/fission/environments/python3/test"    
+#     input_mapping: 
+#       src: oic-ci-tasks-src
+#       docker-src: docker-images-src
+#   - put: docker-image-python-test
+#     params:
+#       build: docker-images-src/fission/environments/python3
+#       dockerfile: docker-images-src/fission/environments/python3/test/Dockerfile
+#       tag: docker-images-src/fission/environments/python3/test/tag
+#     on_success: 
+#       put: slack-alert-buildbot
+#       params:
+#         text: |
+#           We tested, built and published a new Docker image for the infrastructure. See at: 
+#           https://concourse.((domain))/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+#           or at:
+#           https://concourse.((domain))/builds/$BUILD_ID
+#     on_failure: 
+#       put: slack-alert-infra
+#       params:
+#         text: |
+#           Sorry, we failed to publish a new Docker image for the infrastructure. See at: 
+#           https://concourse.((domain))/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+#           or at:
+#           https://concourse.((domain))/builds/$BUILD_ID
 
 # Update Go images
-- name: build-fission-go-env-image
+- name: update-go-env
   public: true
   plan:
   - get: docker-images-src
     trigger: true
   - get: oic-ci-tasks-src
+  - get: docker-image-fission-cli
   - task: lint-dockerfiles
     file: oic-ci-tasks-src/docker/lint/lint_dockerfile.yaml
     params: 
@@ -274,11 +275,22 @@ jobs:
   - put: docker-image-go-env
     params:
       build: docker-images-src/fission/environments/go
+  - task: update-env
+    image: docker-image-fission-cli
+    file: oic-ci-tasks-src/env/update/update_env.yaml
+    input_mapping: 
+      task-src: oic-ci-tasks-src
+    params: 
+      FUNCTION_ENVIRONMENT: go
+      FUNCTION_IMAGE: ((docker-gcr-root))/((docker-image-go-env)):latest
+      # BUILDER_IMAGE: fission/go-env:builder
+      FISSION_ROUTER: ((fission-router))
+      FISSION_URL: ((fission-url))
     on_success: 
       put: slack-alert-buildbot
       params:
         text: |
-          We tested, built and published a new Docker image for the infrastructure. See at: 
+          We updated a fission environment. See at: 
           https://concourse.((domain))/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
           or at:
           https://concourse.((domain))/builds/$BUILD_ID
@@ -286,7 +298,7 @@ jobs:
       put: slack-alert-infra
       params:
         text: |
-          Sorry, we failed to publish a new Docker image for the infrastructure. See at: 
+          Sorry, we failed to update the environment. See at: 
           https://concourse.((domain))/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
           or at:
           https://concourse.((domain))/builds/$BUILD_ID
@@ -326,49 +338,50 @@ jobs:
           https://concourse.((domain))/builds/$BUILD_ID
 
 
-- name: build-fission-go-test-image
-  public: true
-  plan:
-  - get: docker-images-src
-    trigger: true
-  - get: oic-ci-tasks-src
-  - task: lint-dockerfiles
-    file: oic-ci-tasks-src/docker/lint/lint_dockerfile.yaml
-    params: 
-      SEARCH_PATH: "docker-src/fission/environments/go/test"    
-    input_mapping: 
-      src: oic-ci-tasks-src
-      docker-src: docker-images-src
-  - put: docker-image-go-test
-    params:
-      build: docker-images-src/fission/environments/go
-      dockerfile: docker-images-src/fission/environments/go/test/Dockerfile
-      tag: docker-images-src/fission/environments/go/test/tag
-    on_success: 
-      put: slack-alert-buildbot
-      params:
-        text: |
-          We tested, built and published a new Docker image for the infrastructure. See at: 
-          https://concourse.((domain))/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
-          or at:
-          https://concourse.((domain))/builds/$BUILD_ID
-    on_failure: 
-      put: slack-alert-infra
-      params:
-        text: |
-          Sorry, we failed to publish a new Docker image for the infrastructure. See at: 
-          https://concourse.((domain))/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
-          or at:
-          https://concourse.((domain))/builds/$BUILD_ID
+# - name: build-fission-go-test-image
+#   public: true
+#   plan:
+#   - get: docker-images-src
+#     trigger: true
+#   - get: oic-ci-tasks-src
+#   - task: lint-dockerfiles
+#     file: oic-ci-tasks-src/docker/lint/lint_dockerfile.yaml
+#     params: 
+#       SEARCH_PATH: "docker-src/fission/environments/go/test"    
+#     input_mapping: 
+#       src: oic-ci-tasks-src
+#       docker-src: docker-images-src
+#   - put: docker-image-go-test
+#     params:
+#       build: docker-images-src/fission/environments/go
+#       dockerfile: docker-images-src/fission/environments/go/test/Dockerfile
+#       tag: docker-images-src/fission/environments/go/test/tag
+#     on_success: 
+#       put: slack-alert-buildbot
+#       params:
+#         text: |
+#           We tested, built and published a new Docker image for the infrastructure. See at: 
+#           https://concourse.((domain))/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+#           or at:
+#           https://concourse.((domain))/builds/$BUILD_ID
+#     on_failure: 
+#       put: slack-alert-infra
+#       params:
+#         text: |
+#           Sorry, we failed to publish a new Docker image for the infrastructure. See at: 
+#           https://concourse.((domain))/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+#           or at:
+#           https://concourse.((domain))/builds/$BUILD_ID
 
 
 # Update nodejs images
-- name: build-fission-nodejs-env-image
+- name: update-nodejs-env
   public: true
   plan:
   - get: docker-images-src
     trigger: true
   - get: oic-ci-tasks-src
+  - get: docker-image-fission-cli
   - task: lint-dockerfiles
     file: oic-ci-tasks-src/docker/lint/lint_dockerfile.yaml
     params: 
@@ -379,47 +392,22 @@ jobs:
   - put: docker-image-nodejs-env
     params:
       build: docker-images-src/fission/environments/nodejs
-    on_success: 
-      put: slack-alert-buildbot
-      params:
-        text: |
-          We tested, built and published a new Docker image for the infrastructure. See at: 
-          https://concourse.((domain))/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
-          or at:
-          https://concourse.((domain))/builds/$BUILD_ID
-    on_failure: 
-      put: slack-alert-infra
-      params:
-        text: |
-          Sorry, we failed to publish a new Docker image for the infrastructure. See at: 
-          https://concourse.((domain))/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
-          or at:
-          https://concourse.((domain))/builds/$BUILD_ID
-
-
-- name: build-fission-nodejs-test-image
-  public: true
-  plan:
-  - get: docker-images-src
-    trigger: true
-  - get: oic-ci-tasks-src
-  - task: lint-dockerfiles
-    file: oic-ci-tasks-src/docker/lint/lint_dockerfile.yaml
-    params: 
-      SEARCH_PATH: "docker-src/fission/environments/nodejs/test"    
+  - task: update-env
+    image: docker-image-fission-cli
+    file: oic-ci-tasks-src/env/update/update_env.yaml
     input_mapping: 
-      src: oic-ci-tasks-src
-      docker-src: docker-images-src
-  - put: docker-image-nodejs-test
-    params:
-      build: docker-images-src/fission/environments/nodejs
-      dockerfile: docker-images-src/fission/environments/nodejs/test/Dockerfile
-      tag: docker-images-src/fission/environments/nodejs/test/tag
+      task-src: oic-ci-tasks-src
+    params: 
+      FUNCTION_ENVIRONMENT: nodejs
+      FUNCTION_IMAGE: ((docker-gcr-root))/((docker-image-nodejs-env)):latest
+      # BUILDER_IMAGE: fission/go-env:builder
+      FISSION_ROUTER: ((fission-router))
+      FISSION_URL: ((fission-url))
     on_success: 
       put: slack-alert-buildbot
       params:
         text: |
-          We tested, built and published a new Docker image for the infrastructure. See at: 
+          We updated a fission environment. See at: 
           https://concourse.((domain))/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
           or at:
           https://concourse.((domain))/builds/$BUILD_ID
@@ -427,19 +415,56 @@ jobs:
       put: slack-alert-infra
       params:
         text: |
-          Sorry, we failed to publish a new Docker image for the infrastructure. See at: 
+          Sorry, we failed to update the environment. See at: 
           https://concourse.((domain))/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
           or at:
           https://concourse.((domain))/builds/$BUILD_ID
+
+
+# - name: build-fission-nodejs-test-image
+#   public: true
+#   plan:
+#   - get: docker-images-src
+#     trigger: true
+#   - get: oic-ci-tasks-src
+#   - task: lint-dockerfiles
+#     file: oic-ci-tasks-src/docker/lint/lint_dockerfile.yaml
+#     params: 
+#       SEARCH_PATH: "docker-src/fission/environments/nodejs/test"    
+#     input_mapping: 
+#       src: oic-ci-tasks-src
+#       docker-src: docker-images-src
+#   - put: docker-image-nodejs-test
+#     params:
+#       build: docker-images-src/fission/environments/nodejs
+#       dockerfile: docker-images-src/fission/environments/nodejs/test/Dockerfile
+#       tag: docker-images-src/fission/environments/nodejs/test/tag
+#     on_success: 
+#       put: slack-alert-buildbot
+#       params:
+#         text: |
+#           We tested, built and published a new Docker image for the infrastructure. See at: 
+#           https://concourse.((domain))/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+#           or at:
+#           https://concourse.((domain))/builds/$BUILD_ID
+#     on_failure: 
+#       put: slack-alert-infra
+#       params:
+#         text: |
+#           Sorry, we failed to publish a new Docker image for the infrastructure. See at: 
+#           https://concourse.((domain))/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+#           or at:
+#           https://concourse.((domain))/builds/$BUILD_ID
 
 
 # Update Binary Image
-- name: build-fission-binary-env-image
+- name: update-binary-env
   public: true
   plan:
   - get: docker-images-src
     trigger: true
   - get: oic-ci-tasks-src
+  - get: docker-image-fission-cli
   - task: lint-dockerfiles
     file: oic-ci-tasks-src/docker/lint/lint_dockerfile.yaml
     params: 
@@ -450,47 +475,22 @@ jobs:
   - put: docker-image-binary-env
     params:
       build: docker-images-src/fission/environments/binary
-    on_success: 
-      put: slack-alert-buildbot
-      params:
-        text: |
-          We tested, built and published a new Docker image for the infrastructure. See at: 
-          https://concourse.((domain))/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
-          or at:
-          https://concourse.((domain))/builds/$BUILD_ID
-    on_failure: 
-      put: slack-alert-infra
-      params:
-        text: |
-          Sorry, we failed to publish a new Docker image for the infrastructure. See at: 
-          https://concourse.((domain))/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
-          or at:
-          https://concourse.((domain))/builds/$BUILD_ID
-
-
-- name: build-fission-binary-test-image
-  public: true
-  plan:
-  - get: docker-images-src
-    trigger: true
-  - get: oic-ci-tasks-src
-  - task: lint-dockerfiles
-    file: oic-ci-tasks-src/docker/lint/lint_dockerfile.yaml
-    params: 
-      SEARCH_PATH: "docker-src/fission/environments/binary/test"    
+  - task: update-env
+    image: docker-image-fission-cli
+    file: oic-ci-tasks-src/env/update/update_env.yaml
     input_mapping: 
-      src: oic-ci-tasks-src
-      docker-src: docker-images-src
-  - put: docker-image-binary-test
-    params:
-      build: docker-images-src/fission/environments/binary
-      dockerfile: docker-images-src/fission/environments/binary/test/Dockerfile
-      tag: docker-images-src/fission/environments/binary/test/tag
+      task-src: oic-ci-tasks-src
+    params: 
+      FUNCTION_ENVIRONMENT: binary
+      FUNCTION_IMAGE: ((docker-gcr-root))/((docker-image-binary-env)):latest
+      # BUILDER_IMAGE: fission/go-env:builder
+      FISSION_ROUTER: ((fission-router))
+      FISSION_URL: ((fission-url))
     on_success: 
       put: slack-alert-buildbot
       params:
         text: |
-          We tested, built and published a new Docker image for the infrastructure. See at: 
+          We updated a fission environment. See at: 
           https://concourse.((domain))/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
           or at:
           https://concourse.((domain))/builds/$BUILD_ID
@@ -498,10 +498,46 @@ jobs:
       put: slack-alert-infra
       params:
         text: |
-          Sorry, we failed to publish a new Docker image for the infrastructure. See at: 
+          Sorry, we failed to update the environment. See at: 
           https://concourse.((domain))/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
           or at:
           https://concourse.((domain))/builds/$BUILD_ID
+
+
+# - name: build-fission-binary-test-image
+#   public: true
+#   plan:
+#   - get: docker-images-src
+#     trigger: true
+#   - get: oic-ci-tasks-src
+#   - task: lint-dockerfiles
+#     file: oic-ci-tasks-src/docker/lint/lint_dockerfile.yaml
+#     params: 
+#       SEARCH_PATH: "docker-src/fission/environments/binary/test"    
+#     input_mapping: 
+#       src: oic-ci-tasks-src
+#       docker-src: docker-images-src
+#   - put: docker-image-binary-test
+#     params:
+#       build: docker-images-src/fission/environments/binary
+#       dockerfile: docker-images-src/fission/environments/binary/test/Dockerfile
+#       tag: docker-images-src/fission/environments/binary/test/tag
+#     on_success: 
+#       put: slack-alert-buildbot
+#       params:
+#         text: |
+#           We tested, built and published a new Docker image for the infrastructure. See at: 
+#           https://concourse.((domain))/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+#           or at:
+#           https://concourse.((domain))/builds/$BUILD_ID
+#     on_failure: 
+#       put: slack-alert-infra
+#       params:
+#         text: |
+#           Sorry, we failed to publish a new Docker image for the infrastructure. See at: 
+#           https://concourse.((domain))/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+#           or at:
+#           https://concourse.((domain))/builds/$BUILD_ID
 
 # Infrastructure images
 - name: build-docker-fission-cli
@@ -597,7 +633,7 @@ jobs:
       SEARCH_PATH: "code-src/echo_read_secret"
   - task: publish-function-to-staging
     image: docker-image-fission-cli
-    file: oic-ci-tasks-src/api/publish/publish_function.yaml
+    file: oic-ci-tasks-src/function/publish/publish_function.yaml
     params: 
       ENVIRONMENT: staging
       FISSION_URL: ((fission-url))
@@ -612,21 +648,20 @@ jobs:
   - task: newman-test-function-in-staging
     attempts: 10
     image: docker-image-newman
-    file: oic-ci-tasks-src/api/test/test_function.yaml
+    file: oic-ci-tasks-src/function/test/test_function.yaml
     input_mapping: 
       task-src: oic-ci-tasks-src
       function-src: fission-functions-src
     params:
       FISSION_ROUTER: ((fission-router))
       ENVIRONMENT: staging
-      FISSION_ROUTER: ((fission-router))
       COLLECTION: function-src/echo/ci/collection.json
       FUNCTION_NAME: echo
       PROTOCOL: http
       TARGET_PORT: 80
   - task: remove-function-from-staging
     image: docker-image-fission-cli
-    file: oic-ci-tasks-src/api/remove/remove_function.yaml
+    file: oic-ci-tasks-src/function/remove/remove_function.yaml
     params: 
       ENVIRONMENT: staging
       FISSION_URL: ((fission-url))
@@ -674,7 +709,7 @@ jobs:
   #     SEARCH_PATH: "code-src/echo_read_secret"
   - task: publish-function-to-staging
     image: docker-image-fission-cli
-    file: oic-ci-tasks-src/api/publish/publish_function.yaml
+    file: oic-ci-tasks-src/function/publish/publish_function.yaml
     params: 
       ENVIRONMENT: staging
       FISSION_URL: ((fission-url))
@@ -689,7 +724,7 @@ jobs:
   - task: newman-test-function-in-staging
     attempts: 10
     image: docker-image-newman
-    file: oic-ci-tasks-src/api/test/test_function.yaml
+    file: oic-ci-tasks-src/function/test/test_function.yaml
     input_mapping: 
       task-src: oic-ci-tasks-src
       function-src: fission-functions-src
@@ -703,7 +738,7 @@ jobs:
       TARGET_PORT: 80
   - task: remove-function-from-staging
     image: docker-image-fission-cli
-    file: oic-ci-tasks-src/api/remove/remove_function.yaml
+    file: oic-ci-tasks-src/function/remove/remove_function.yaml
     params: 
       ENVIRONMENT: staging
       FISSION_URL: ((fission-url))
@@ -736,19 +771,62 @@ jobs:
   public: true
   serial: true
   plan:
-  - aggregate:
-    - get: docker-image-nodejs-test
-      passed: [ build-fission-nodejs-test-image ]
+  - aggregate:   
+    - get: docker-image-fission-cli
+      passed: [ build-docker-fission-cli ]
+    - get: docker-image-newman
+      passed: [ build-docker-newman ]
   - get: fission-functions-src
     trigger: true
   - get: oic-ci-tasks-src
-  - task: newman-function
-    image: docker-image-nodejs-test
-    file: oic-ci-tasks-src/nodejs/function/test_function.yaml
+  # - task: lint-nodejs
+  #   file: oic-ci-tasks-src/nodejs/lint/lint_nodejs.yaml
+  #   input_mapping: 
+  #     src: oic-ci-tasks-src
+  #     code-src: fission-functions-src
+  #   params:
+  #     SEARCH_PATH: "code-src/echo_read_secret"
+  - task: publish-function-to-staging
+    image: docker-image-fission-cli
+    file: oic-ci-tasks-src/function/publish/publish_function.yaml
+    params: 
+      ENVIRONMENT: staging
+      FISSION_URL: ((fission-url))
+      FISSION_ROUTER: ((fission-router))
+      FUNCTION_NAME: form-to-json
+      FUNCTION_ENVIRONMENT: nodejs
+      CODE_PATH: function-src/form_to_json/form_to_json.js
+      FUNCTION_METHOD: POST
     input_mapping: 
-      src: fission-functions-src
+      task-src: oic-ci-tasks-src
+      function-src: fission-functions-src
+  - task: newman-test-function-in-staging
+    attempts: 10
+    image: docker-image-newman
+    file: oic-ci-tasks-src/function/test/test_function.yaml
+    input_mapping: 
+      task-src: oic-ci-tasks-src
+      function-src: fission-functions-src
     params:
-      FUNCTION_PATH: "form_to_json"
+      FISSION_ROUTER: ((fission-router))
+      ENVIRONMENT: staging
+      COLLECTION: function-src/form_to_json/ci/collection.json
+      FUNCTION_NAME: form-to-json
+      PROTOCOL: http
+      TARGET_PORT: 80
+  - task: remove-function-from-staging
+    image: docker-image-fission-cli
+    file: oic-ci-tasks-src/function/remove/remove_function.yaml
+    params: 
+      ENVIRONMENT: staging
+      FISSION_URL: ((fission-url))
+      FISSION_ROUTER: ((fission-router))
+      FUNCTION_NAME: form-to-json
+      FUNCTION_ENVIRONMENT: nodejs
+      FUNCTION_METHOD: GET
+    input_mapping: 
+      task-src: oic-ci-tasks-src
+      function-src: fission-functions-src
     on_success: 
       put: slack-alert-buildbot
       params:
@@ -767,22 +845,78 @@ jobs:
           https://concourse.((domain))/builds/$BUILD_ID
 
 # Go Functions
-- name: fission-go-form-req-processor
+- name: fission-go-hello
   public: true
   serial: true
   plan:
   - aggregate:   
-    - get: docker-image-go-test
-      passed: [ build-fission-go-test-image ]
-  - get: go-functions-amit
+    - get: docker-image-fission-cli
+      passed: [ build-docker-fission-cli ]
+    - get: docker-image-newman
+      passed: [ build-docker-newman ]
+    - get: docker-image-go-builder
+      passed: [ build-docker-newman ]
+  - get: fission-functions-src
     trigger: true
-  - task: newman-function
-    image: docker-image-go-test
-    file: go-functions-amit/examples-go/form-req-processor/ci/test_function.yaml
+  - get: oic-ci-tasks-src
+  # - task: lint-go
+  #   file: oic-ci-tasks-src/nodejs/lint/lint_go.yaml
+  #   input_mapping: 
+  #     src: oic-ci-tasks-src
+  #     code-src: fission-functions-src
+  #   params:
+  #     SEARCH_PATH: "code-src/echo"
+  - task: build-go-function
+    image: docker-image-go-builder
+    file: oic-ci-tasks-src/function/build/build_function.yaml
+      FUNCTION_NAME: hello
+      FUNCTION_ENVIRONMENT: go
+      CODE_PATH: function-src/hello/hello.go
     input_mapping: 
-      src: go-functions-amit
+      task-src: oic-ci-tasks-src
+      build: fission-functions-src
+      
+  - task: publish-function-to-staging
+    image: docker-image-fission-cli
+    file: oic-ci-tasks-src/function/publish/publish_function.yaml
+    params: 
+      ENVIRONMENT: staging
+      FISSION_URL: ((fission-url))
+      FISSION_ROUTER: ((fission-router))
+      FUNCTION_NAME: hello
+      FUNCTION_ENVIRONMENT: go
+      CODE_PATH: function-src/hello/hello.go
+      FUNCTION_METHOD: GET
+    input_mapping: 
+      task-src: oic-ci-tasks-src
+      function-src: fission-functions-src
+  - task: newman-test-function-in-staging
+    attempts: 10
+    image: docker-image-newman
+    file: oic-ci-tasks-src/function/test/test_function.yaml
+    input_mapping: 
+      task-src: oic-ci-tasks-src
+      function-src: fission-functions-src
     params:
-      FUNCTION_PATH: "examples-go/form-req-processor"
+      FISSION_ROUTER: ((fission-router))
+      ENVIRONMENT: staging
+      COLLECTION: function-src/hello/ci/collection.json
+      FUNCTION_NAME: hello
+      PROTOCOL: http
+      TARGET_PORT: 80
+  - task: remove-function-from-staging
+    image: docker-image-fission-cli
+    file: oic-ci-tasks-src/function/remove/remove_function.yaml
+    params: 
+      ENVIRONMENT: staging
+      FISSION_URL: ((fission-url))
+      FISSION_ROUTER: ((fission-router))
+      FUNCTION_NAME: hello
+      FUNCTION_ENVIRONMENT: go
+      FUNCTION_METHOD: GET
+    input_mapping: 
+      task-src: oic-ci-tasks-src
+      function-src: fission-functions-src
     on_success: 
       put: slack-alert-buildbot
       params:
@@ -799,4 +933,3 @@ jobs:
           https://concourse.((domain))/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
           or at:
           https://concourse.((domain))/builds/$BUILD_ID
-

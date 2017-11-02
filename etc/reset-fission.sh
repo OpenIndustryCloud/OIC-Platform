@@ -18,4 +18,6 @@ helm install --namespace fission \
 	fission-charts/fission-workflows \
 	--values ~/Documents/src/projects/landg/oic/etc/fission-wf-values.yaml
 
+
+
 echo "please update the DNS in a few seconds"
