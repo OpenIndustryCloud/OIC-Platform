@@ -19,8 +19,9 @@ groups:
   - fission-go-register-ticket
 - name: python
   jobs: 
-  - fission-python-echo
+  # - fission-python-echo
   - fission-python-echo-read-secret
+  - fission-python-echo-stage
 - name: nodejs
   jobs: 
   - fission-nodejs-form-to-json
@@ -37,32 +38,45 @@ resource_types:
   source:
     repository: cfcommunity/slack-notification-resource
     tag: latest
+- name: pull-request
+  type: docker-image
+  source:
+    repository: jtarchie/pr
+- name: pull-request-test
+  type: docker-image
+  source:
+    repository: jtarchie/pr
+    tag: test
 
 resources:
-- name: docker-images-src
-  type: git
-  source:
-    uri: https://github.com/OpenIndustryCloud/docker-images.git
-    branch: master
-    disable_ci_skip: true
-- name: fission-functions-src
-  type: git
-  source:
-    uri: https://github.com/OpenIndustryCloud/fission-functions.git
-    branch: master
-    disable_ci_skip: true
-- name: oic-ci-tasks-src
-  type: git
-  source:
-    uri: https://github.com/OpenIndustryCloud/oic-ci-tasks
-    branch: master
-    disable_ci_skip: true
 # - name: oic-src
 #   type: git
 #   source:
 #     uri: https://github.com/OpenIndustryCloud/OIC-Platform.git
 #     branch: master
 #     disable_ci_skip: true
+# Code for all Docker Images
+- name: docker-images-src
+  type: git
+  source:
+    uri: https://github.com/OpenIndustryCloud/docker-images.git
+    branch: master
+    disable_ci_skip: true
+# Code for all Fission Functions
+- name: fission-functions-src
+  type: git
+  source:
+    uri: https://github.com/OpenIndustryCloud/fission-functions.git
+    branch: master
+    disable_ci_skip: true
+# Code for CI unitasks 
+- name: oic-ci-tasks-src
+  type: git
+  source:
+    uri: https://github.com/OpenIndustryCloud/oic-ci-tasks
+    branch: master
+    disable_ci_skip: true
+# Slack Definitions
 - name: slack-alert-infra
   type: slack-notification
   source:
@@ -71,6 +85,7 @@ resources:
   type: slack-notification
   source:
     url: ((slack-url-buildbot))
+# Docker Images
 - name: docker-image-fission-cli
   type: docker-image
   source:
@@ -125,8 +140,29 @@ resources:
     password: ((docker-gcr-password))
     repository: ((docker-gcr-root))/((docker-image-binary-env))
     tag: latest
+# Pull Requests
+- name: fission-functions-pr
+  type: pull-request
+  source:
+    access_token: ((gh-access-token))
+    private_key: ((gh-ssh-key))
+    repo: OpenIndustryCloud/fission-functions
+    base: master
+- name: fission-functions-merge-pr
+  type: pull-request-test
+  source:
+    access_token: ((gh-access-token))
+    private_key: ((gh-ssh-key))
+    base: test-merge
+    repo: OpenIndustryCloud/fission-functions
+
 
 jobs:
+#####################################################################
+#
+# Docker Images for Environments
+#
+#####################################################################
 # Update Python Images
 - name: update-python-env
   public: true
@@ -172,7 +208,6 @@ jobs:
           https://concourse.((domain))/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
           or at:
           https://concourse.((domain))/builds/$BUILD_ID
-
 # Update Go images
 - name: update-go-env
   public: true
@@ -218,8 +253,6 @@ jobs:
           https://concourse.((domain))/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
           or at:
           https://concourse.((domain))/builds/$BUILD_ID
-
-
 - name: build-fission-go-builder-image
   public: true
   plan:
@@ -299,7 +332,6 @@ jobs:
           or at:
           https://concourse.((domain))/builds/$BUILD_ID
 
-
 # Update Binary Image
 - name: update-binary-env
   public: true
@@ -346,7 +378,12 @@ jobs:
           or at:
           https://concourse.((domain))/builds/$BUILD_ID
 
-# Infrastructure images
+#####################################################################
+#
+# Docker Images for Infrastructure
+#
+#####################################################################
+# Fission CLI
 - name: build-docker-fission-cli
   public: true
   plan:
@@ -380,6 +417,7 @@ jobs:
           or at:
           https://concourse.((domain))/builds/$BUILD_ID
 
+# Newman (Postman CLI)
 - name: build-docker-newman
   public: true
   plan:
@@ -413,90 +451,88 @@ jobs:
           or at:
           https://concourse.((domain))/builds/$BUILD_ID
 
-####
+#####################################################################
 #
 # Fission functions tested after the images are published
 #
-####
-
+#####################################################################
 # Python Functions
-- name: fission-python-echo
-  public: true
-  plan:
-  - aggregate:   
-    - get: docker-image-fission-cli
-      passed: [ build-docker-fission-cli ]
-    - get: docker-image-newman
-      passed: [ build-docker-newman ]
-  - get: fission-functions-src
-    trigger: true
-  - get: oic-ci-tasks-src
-  - task: lint-python
-    file: oic-ci-tasks-src/python/lint/lint_python.yaml
-    input_mapping: 
-      src: oic-ci-tasks-src
-      code-src: fission-functions-src
-    params:
-      SEARCH_PATH: "code-src/echo_read_secret"
-  - task: publish-function-to-staging
-    image: docker-image-fission-cli
-    file: oic-ci-tasks-src/function/publish/publish_function.yaml
-    params: 
-      ENVIRONMENT: staging
-      FISSION_URL: ((fission-url))
-      FISSION_ROUTER: ((fission-router))
-      FUNCTION_NAME: echo
-      FUNCTION_ENVIRONMENT: python
-      CODE_PATH: function-src/echo/echo.py
-      FUNCTION_METHOD: POST
-    input_mapping: 
-      task-src: oic-ci-tasks-src
-      function-src: fission-functions-src
-  - task: newman-test-function-in-staging
-    attempts: 10
-    image: docker-image-newman
-    file: oic-ci-tasks-src/function/test/test_function.yaml
-    input_mapping: 
-      task-src: oic-ci-tasks-src
-      function-src: fission-functions-src
-    params:
-      FISSION_ROUTER: ((fission-router))
-      ENVIRONMENT: staging
-      COLLECTION: function-src/echo/ci/collection.json
-      FUNCTION_NAME: echo
-      PROTOCOL: http
-      TARGET_PORT: 80
-      FUNCTION_METHOD: POST
-  - task: remove-function-from-staging
-    image: docker-image-fission-cli
-    file: oic-ci-tasks-src/function/remove/remove_function.yaml
-    params: 
-      ENVIRONMENT: staging
-      FISSION_URL: ((fission-url))
-      FISSION_ROUTER: ((fission-router))
-      FUNCTION_NAME: echo
-      FUNCTION_ENVIRONMENT: python
-      FUNCTION_METHOD: POST
-    input_mapping: 
-      task-src: oic-ci-tasks-src
-      function-src: fission-functions-src
-    on_success: 
-      put: slack-alert-buildbot
-      params:
-        text: |
-          We successfully tested a function for the infrastructure. See at: 
-          https://concourse.((domain))/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
-          or at:
-          https://concourse.((domain))/builds/$BUILD_ID
-    on_failure: 
-      put: slack-alert-infra
-      params:
-        text: |
-          WARNING Tests do not pass on a function. See at: 
-          https://concourse.((domain))/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
-          or at:
-          https://concourse.((domain))/builds/$BUILD_ID
-
+# - name: fission-python-echo
+#   public: true
+#   plan:
+#   - aggregate:   
+#     - get: docker-image-fission-cli
+#       passed: [ build-docker-fission-cli ]
+#     - get: docker-image-newman
+#       passed: [ build-docker-newman ]
+#   - get: fission-functions-src
+#     trigger: true
+#   - get: oic-ci-tasks-src
+#   - task: lint-python
+#     file: oic-ci-tasks-src/python/lint/lint_python.yaml
+#     input_mapping: 
+#       src: oic-ci-tasks-src
+#       code-src: fission-functions-src
+#     params:
+#       SEARCH_PATH: "code-src/echo_read_secret"
+#   - task: publish-function-to-staging
+#     image: docker-image-fission-cli
+#     file: oic-ci-tasks-src/function/publish/publish_function.yaml
+#     params: 
+#       ENVIRONMENT: staging
+#       FISSION_URL: ((fission-url))
+#       FISSION_ROUTER: ((fission-router))
+#       FUNCTION_NAME: echo
+#       FUNCTION_ENVIRONMENT: python
+#       CODE_PATH: function-src/echo/echo.py
+#       FUNCTION_METHOD: POST
+#     input_mapping: 
+#       task-src: oic-ci-tasks-src
+#       function-src: fission-functions-src
+#   - task: newman-test-function-in-staging
+#     attempts: 10
+#     image: docker-image-newman
+#     file: oic-ci-tasks-src/function/test/test_function.yaml
+#     input_mapping: 
+#       task-src: oic-ci-tasks-src
+#       function-src: fission-functions-src
+#     params:
+#       FISSION_ROUTER: ((fission-router))
+#       ENVIRONMENT: staging
+#       COLLECTION: function-src/echo/ci/collection.json
+#       FUNCTION_NAME: echo
+#       PROTOCOL: http
+#       TARGET_PORT: 80
+#       FUNCTION_METHOD: POST
+#   - task: remove-function-from-staging
+#     image: docker-image-fission-cli
+#     file: oic-ci-tasks-src/function/remove/remove_function.yaml
+#     params: 
+#       ENVIRONMENT: staging
+#       FISSION_URL: ((fission-url))
+#       FISSION_ROUTER: ((fission-router))
+#       FUNCTION_NAME: echo
+#       FUNCTION_ENVIRONMENT: python
+#       FUNCTION_METHOD: POST
+#     input_mapping: 
+#       task-src: oic-ci-tasks-src
+#       function-src: fission-functions-src
+#     on_success: 
+#       put: slack-alert-buildbot
+#       params:
+#         text: |
+#           We successfully tested a function for the infrastructure. See at: 
+#           https://concourse.((domain))/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+#           or at:
+#           https://concourse.((domain))/builds/$BUILD_ID
+#     on_failure: 
+#       put: slack-alert-infra
+#       params:
+#         text: |
+#           WARNING Tests do not pass on a function. See at: 
+#           https://concourse.((domain))/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+#           or at:
+#           https://concourse.((domain))/builds/$BUILD_ID
 - name: fission-python-echo-read-secret
   public: true
   plan:
@@ -737,9 +773,6 @@ jobs:
           https://concourse.((domain))/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
           or at:
           https://concourse.((domain))/builds/$BUILD_ID
-
-# Code for Register Ticket
-# Go Functions
 - name: fission-go-register-ticket
   public: true
   serial: true
@@ -822,3 +855,174 @@ jobs:
           https://concourse.((domain))/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
           or at:
           https://concourse.((domain))/builds/$BUILD_ID
+
+#####################################################################
+#
+# Test PR Management
+#
+#####################################################################
+
+- name: fission-python-echo-stage
+  public: true
+  plan:
+  - aggregate:
+    - get: docker-image-fission-cli
+      passed: [ build-docker-fission-cli ]
+    - get: docker-image-newman
+      passed: [ build-docker-newman ]
+  - get: fission-functions-src
+    trigger: true
+  - get: oic-ci-tasks-src
+  - task: lint-python
+    file: oic-ci-tasks-src/python/lint/lint_python.yaml
+    input_mapping: 
+      src: oic-ci-tasks-src
+      code-src: fission-functions-src
+    params:
+      SEARCH_PATH: "code-src/echo_read_secret"
+  - task: publish-function-to-staging
+    image: docker-image-fission-cli
+    file: oic-ci-tasks-src/function/publish/publish_function.yaml
+    params: 
+      ENVIRONMENT: staging
+      FISSION_URL: ((fission-url))
+      FISSION_ROUTER: ((fission-router))
+      FUNCTION_NAME: echo
+      FUNCTION_ENVIRONMENT: python
+      CODE_PATH: function-src/echo/echo.py
+      FUNCTION_METHOD: POST
+    input_mapping: 
+      task-src: oic-ci-tasks-src
+      function-src: fission-functions-src
+  - task: newman-test-function-in-staging
+    attempts: 10
+    image: docker-image-newman
+    file: oic-ci-tasks-src/function/test/test_function.yaml
+    input_mapping: 
+      task-src: oic-ci-tasks-src
+      function-src: fission-functions-src
+    params:
+      FISSION_ROUTER: ((fission-router))
+      ENVIRONMENT: staging
+      COLLECTION: function-src/echo/ci/collection.json
+      FUNCTION_NAME: echo
+      PROTOCOL: http
+      TARGET_PORT: 80
+      FUNCTION_METHOD: POST
+  - task: remove-function-from-staging
+    image: docker-image-fission-cli
+    file: oic-ci-tasks-src/function/remove/remove_function.yaml
+    params: 
+      ENVIRONMENT: staging
+      FISSION_URL: ((fission-url))
+      FISSION_ROUTER: ((fission-router))
+      FUNCTION_NAME: echo
+      FUNCTION_ENVIRONMENT: python
+      FUNCTION_METHOD: POST
+    input_mapping: 
+      task-src: oic-ci-tasks-src
+      function-src: fission-functions-src
+    on_success: 
+      put: slack-alert-buildbot
+      params:
+        text: |
+          We successfully tested a function for the infrastructure. See at: 
+          https://concourse.((domain))/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+          or at:
+          https://concourse.((domain))/builds/$BUILD_ID
+    on_failure: 
+      put: slack-alert-infra
+      params:
+        text: |
+          WARNING Tests do not pass on a function. See at: 
+          https://concourse.((domain))/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+          or at:
+          https://concourse.((domain))/builds/$BUILD_ID
+
+- name: fission-python-echo-create-pr
+  public: true
+  plan:
+  - aggregate:
+    - get: fission-functions-src
+      trigger: true
+      passed: [ "fission-python-echo-stage" ]
+  - get: oic-ci-tasks-src
+  - task: create-pr
+    file: oic-ci-tasks-src/git/create-pr/create-pr.yaml
+    input_mapping: 
+      code-src: fission-functions-src
+    params:
+      GITHUB_ACCESS_TOKEN: ((gh-access-token))
+      REPO_NAME: OpenIndustryCloud/fission-functions
+      BASE_BRANCH: test-merge
+
+
+- name: fission-functions-echo-merge-pr
+  plan:
+  - get: fission-functions-src
+    passed: [ 'fission-python-echo-create-pr' ]
+  - get: fission-functions-merge-pr
+    trigger: true
+  - put: fission-functions-merge-pr
+    params:
+      path: fission-functions-merge-pr
+      status: success
+      merge:
+        method: merge
+        commit_msg: fission-functions-merge-pr/README.md
+
+- name: fission-functions-echo-test-pr
+  plan:
+  - get: fission-functions-merge-pr
+    trigger: true
+    version: every
+  - get: oic-ci-tasks-src
+  - task: lint-python
+    file: oic-ci-tasks-src/python/lint/lint_python.yaml
+    input_mapping: 
+      src: oic-ci-tasks-src
+      code-src: fission-functions-merge-pr
+    params:
+      SEARCH_PATH: "fission-functions-merge-pr/echo_read_secret"
+    on_success:
+      put: fission-functions-merge-pr
+      params:
+        path: fission-functions-merge-pr
+        status: success
+    on_failure:
+      put: fission-functions-merge-pr
+      params:
+        path: fission-functions-merge-pr
+        status: failure
+
+- name: fission-functions-echo-release
+  plan:
+  - get: fission-functions-src
+    passed: [ 'test-pr-merge' ]
+  - task: next-tag
+    config:
+      image_resource:
+        type: docker-image
+        source:
+          repository: concourse/git-resource
+      platform: linux
+      inputs:
+      - name: fission-functions-src
+      outputs:
+      - name: tag
+      run:
+        path: bash
+        args:
+          - -c
+          - |
+            set -eux
+            echo v > tag/prefix
+            pushd git-pr
+              git tag -l | sed -e "s/v//" | sort -n | tail -n 1 | xargs -n 1 expr 1 + > ../tag/name
+            popd
+  - put: fission-functions-src
+    params:
+      repository: git-pr
+      only_tag: true
+      tag: tag/name
+      tag_prefix: v
