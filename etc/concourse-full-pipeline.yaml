@@ -16,6 +16,7 @@ groups:
   - fission-nodejs-form-to-json
   - fission-python-echo-read-secret
   - fission-go-hello
+  - fission-go-register-ticket
 - name: python
   jobs: 
   - fission-python-echo
@@ -27,6 +28,7 @@ groups:
   jobs: 
   - build-fission-go-builder-image
   - fission-go-hello
+  - fission-go-register-ticket
 
 resource_types:
 # https://github.com/cloudfoundry-community/slack-notification-resource
@@ -60,12 +62,6 @@ resources:
 #   source:
 #     uri: https://github.com/OpenIndustryCloud/OIC-Platform.git
 #     branch: master
-#     disable_ci_skip: true
-# - name: go-functions-amit
-#   type: git
-#   source:
-#     uri: https://github.com/AmitKrVarman/fission-functions.git
-#     branch: tests
 #     disable_ci_skip: true
 - name: slack-alert-infra
   type: slack-notification
@@ -683,8 +679,6 @@ jobs:
     input_mapping: 
       task-src: oic-ci-tasks-src
       function-src: fission-functions-src
-    # output: 
-    # - name: built-artifacts
   - task: publish-function-to-staging
     image: docker-image-fission-cli
     file: oic-ci-tasks-src/function/publish/publish_function.yaml
@@ -724,6 +718,91 @@ jobs:
       FUNCTION_NAME: hello
       FUNCTION_ENVIRONMENT: go
       FUNCTION_METHOD: GET
+    input_mapping: 
+      task-src: oic-ci-tasks-src
+      function-src: fission-functions-src
+    on_success: 
+      put: slack-alert-buildbot
+      params:
+        text: |
+          We successfully tested a function for the infrastructure. See at: 
+          https://concourse.((domain))/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+          or at:
+          https://concourse.((domain))/builds/$BUILD_ID
+    on_failure: 
+      put: slack-alert-infra
+      params:
+        text: |
+          WARNING Tests do not pass on a function. See at: 
+          https://concourse.((domain))/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+          or at:
+          https://concourse.((domain))/builds/$BUILD_ID
+
+# Code for Register Ticket
+# Go Functions
+- name: fission-go-register-ticket
+  public: true
+  serial: true
+  plan:
+  - aggregate:   
+    - get: docker-image-fission-cli
+      passed: [ build-docker-fission-cli ]
+    - get: docker-image-newman
+      passed: [ build-docker-newman ]
+    - get: docker-image-go-builder
+      passed: [ build-fission-go-builder-image ]
+  - get: fission-functions-src
+    trigger: true
+  - get: oic-ci-tasks-src
+  - task: build-go-function
+    image: docker-image-go-builder
+    file: oic-ci-tasks-src/function/build/build_function.yaml
+    params:
+      FUNCTION_NAME: register-ticket
+      FUNCTION_ENVIRONMENT: go
+      CODE_PATH: function-src/register-ticket/register-ticket.go
+    input_mapping: 
+      task-src: oic-ci-tasks-src
+      function-src: fission-functions-src
+  - task: publish-function-to-staging
+    image: docker-image-fission-cli
+    file: oic-ci-tasks-src/function/publish/publish_function.yaml
+    params: 
+      ENVIRONMENT: staging
+      FISSION_URL: ((fission-url))
+      FISSION_ROUTER: ((fission-router))
+      FUNCTION_NAME: register-ticket
+      FUNCTION_ENVIRONMENT: go
+      CODE_PATH: function-src/register-ticket.so
+      FUNCTION_METHOD: POST
+    input_mapping: 
+      task-src: oic-ci-tasks-src
+      function-src: built-artifacts
+  - task: newman-test-function-in-staging
+    attempts: 10
+    image: docker-image-newman
+    file: oic-ci-tasks-src/function/test/test_function.yaml
+    input_mapping: 
+      task-src: oic-ci-tasks-src
+      function-src: fission-functions-src
+    params:
+      FISSION_ROUTER: ((fission-router))
+      ENVIRONMENT: staging
+      COLLECTION: function-src/register-ticket/ci/collection.json
+      FUNCTION_NAME: register-ticket
+      PROTOCOL: http
+      TARGET_PORT: 80
+      FUNCTION_METHOD: POST
+  - task: remove-function-from-staging
+    image: docker-image-fission-cli
+    file: oic-ci-tasks-src/function/remove/remove_function.yaml
+    params: 
+      ENVIRONMENT: staging
+      FISSION_URL: ((fission-url))
+      FISSION_ROUTER: ((fission-router))
+      FUNCTION_NAME: register-ticket
+      FUNCTION_ENVIRONMENT: go
+      FUNCTION_METHOD: POST
     input_mapping: 
       task-src: oic-ci-tasks-src
       function-src: fission-functions-src
