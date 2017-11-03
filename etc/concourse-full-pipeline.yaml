@@ -12,7 +12,7 @@ groups:
   - update-binary-env
 - name: all-functions
   jobs:
-  - fission-python-echo
+  # - fission-python-echo
   - fission-nodejs-form-to-json
   - fission-python-echo-read-secret
   - fission-go-hello
@@ -21,7 +21,7 @@ groups:
   jobs: 
   # - fission-python-echo
   - fission-python-echo-read-secret
-  - fission-python-echo-stage
+  # - fission-python-echo-stage
 - name: nodejs
   jobs: 
   - fission-nodejs-form-to-json
@@ -30,6 +30,14 @@ groups:
   - build-fission-go-builder-image
   - fission-go-hello
   - fission-go-register-ticket
+- name: experimentation
+  jobs: 
+  - fission-python-echo-stage
+  - fission-functions-echo-merge-pr
+  - fission-functions-echo-test-pr
+  - fission-functions-echo-release
+  - fission-python-echo-create-pr
+
 
 resource_types:
 # https://github.com/cloudfoundry-community/slack-notification-resource
@@ -59,23 +67,26 @@ resources:
 - name: docker-images-src
   type: git
   source:
-    uri: https://github.com/OpenIndustryCloud/docker-images.git
+    uri: git@github.com:OpenIndustryCloud/docker-images.git
     branch: master
     disable_ci_skip: true
+    private_key: ((gh-ssh-key))
 # Code for all Fission Functions
 - name: fission-functions-src
   type: git
   source:
-    uri: https://github.com/OpenIndustryCloud/fission-functions.git
+    uri: git@github.com:OpenIndustryCloud/fission-functions.git
     branch: master
     disable_ci_skip: true
+    private_key: ((gh-ssh-key))
 # Code for CI unitasks 
 - name: oic-ci-tasks-src
   type: git
   source:
-    uri: https://github.com/OpenIndustryCloud/oic-ci-tasks
+    uri: git@github.com:OpenIndustryCloud/oic-ci-tasks
     branch: master
     disable_ci_skip: true
+    private_key: ((gh-ssh-key))
 # Slack Definitions
 - name: slack-alert-infra
   type: slack-notification
@@ -876,10 +887,10 @@ jobs:
   - task: lint-python
     file: oic-ci-tasks-src/python/lint/lint_python.yaml
     input_mapping: 
-      src: oic-ci-tasks-src
-      code-src: fission-functions-src
+      task-src: oic-ci-tasks-src
+      function-src: fission-functions-src
     params:
-      SEARCH_PATH: "code-src/echo_read_secret"
+      SEARCH_PATH: "function-src/echo_read_secret"
   - task: publish-function-to-staging
     image: docker-image-fission-cli
     file: oic-ci-tasks-src/function/publish/publish_function.yaml
@@ -948,14 +959,13 @@ jobs:
       passed: [ "fission-python-echo-stage" ]
   - get: oic-ci-tasks-src
   - task: create-pr
-    file: oic-ci-tasks-src/git/create-pr/create-pr.yaml
+    file: oic-ci-tasks-src/git/create_pr/create_pr.yaml
     input_mapping: 
-      code-src: fission-functions-src
+      task-src: oic-ci-tasks-src
     params:
       GITHUB_ACCESS_TOKEN: ((gh-access-token))
       REPO_NAME: OpenIndustryCloud/fission-functions
       BASE_BRANCH: test-merge
-
 
 - name: fission-functions-echo-merge-pr
   plan:
@@ -973,32 +983,32 @@ jobs:
 
 - name: fission-functions-echo-test-pr
   plan:
-  - get: fission-functions-merge-pr
+  - get: fission-functions-pr
     trigger: true
     version: every
   - get: oic-ci-tasks-src
   - task: lint-python
     file: oic-ci-tasks-src/python/lint/lint_python.yaml
     input_mapping: 
-      src: oic-ci-tasks-src
-      code-src: fission-functions-merge-pr
+      task-src: oic-ci-tasks-src
+      function-src: fission-functions-src
     params:
-      SEARCH_PATH: "fission-functions-merge-pr/echo_read_secret"
+      SEARCH_PATH: "function-src/echo"
     on_success:
-      put: fission-functions-merge-pr
+      put: fission-functions-pr
       params:
-        path: fission-functions-merge-pr
+        path: fission-functions-pr
         status: success
     on_failure:
-      put: fission-functions-merge-pr
+      put: fission-functions-pr
       params:
-        path: fission-functions-merge-pr
+        path: fission-functions-pr
         status: failure
 
 - name: fission-functions-echo-release
   plan:
   - get: fission-functions-src
-    passed: [ 'test-pr-merge' ]
+    passed: [ 'fission-functions-echo-merge-pr' ]
   - task: next-tag
     config:
       image_resource:
@@ -1016,13 +1026,19 @@ jobs:
           - -c
           - |
             set -eux
+            [ -d "tag" ] && mkdir -p tag
             echo v > tag/prefix
-            pushd git-pr
-              git tag -l | sed -e "s/v//" | sort -n | tail -n 1 | xargs -n 1 expr 1 + > ../tag/name
+            pushd fission-functions-src
+              # git tag -l | sed -e "s/v//" | sort -n | tail -n 1 | xargs -n 1 expr 1 + | tee ../tag/name
+              if [ "x$(git tag -l)" = "x" ]; then 
+                echo 1 | tee ../tag/name 
+              else 
+                git tag -l | sed -e "s/v//" | sort -n | tail -n 1 | xargs -n 1 expr 1 + | tee ../tag/name
+              fi
             popd
   - put: fission-functions-src
     params:
-      repository: git-pr
+      repository: fission-functions-src
       only_tag: true
       tag: tag/name
       tag_prefix: v
