@@ -1,5 +1,5 @@
 
-image: gcr.io/landg-179815/tellform:latest
+image: gcr.io/beta-180508/tellform:latest
 
 ## Specify a imagePullPolicy
 ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'

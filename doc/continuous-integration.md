@@ -13,16 +13,18 @@ First we need a CNAME that maps to our round robin DNS:
 gcloud dns record-sets transaction start --zone ${ZONE}
 gcloud dns record-sets transaction add \
 	--zone ${ZONE} \
-	--name concourse.${DOMAIN}. \
+	--name concourse.${ZONE}.${DOMAIN}. \
 	--ttl 600 \
-	--type CNAME ingress.${DOMAIN}.
+	--type CNAME ingress.${ZONE}.${DOMAIN}.
 gcloud dns record-sets transaction execute --zone ${ZONE}
 </code></pre>
 
 Now we can deploy Concourse with a custom values file that includes a TLS protected ingress. Rotation and management of certs will be done via Kube-lego
 
 <pre><code>
-sed s#DOMAIN#${DOMAIN}#g etc/concourse-values.yaml > /tmp/concourse-values.yaml 
+sed -e s#DOMAIN#${DOMAIN}#g \
+	-e s#ZONE#${ZONE}#g \
+	etc/concourse-values.yaml > /tmp/concourse-values.yaml 
 
 helm install --name concourse \
 	--namespace concourse \
@@ -37,8 +39,8 @@ At this point you need to download the CLI tools for Concourse using the landing
 Note that the CA from KubeLego will not be trusted with the demo account. To download the CA from the website and let Concourse trust it, do: 
 
 <pre><code>
-openssl s_client -servername concourse.${DOMAIN} \
-   -connect concourse.${DOMAIN}:443 \
+openssl s_client -servername concourse.${ZONE}.${DOMAIN} \
+   -connect concourse.${ZONE}.${DOMAIN}:443 \
    </dev/null | \
    sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' \
    > ca-concourse.pem

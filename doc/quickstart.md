@@ -7,6 +7,7 @@ First of all you need an account on GCP with billing enabled. Activate the follo
 * [Service Management API](https://console.cloud.google.com/apis/api/servicemanagement.googleapis.com/overview)
 * [Google Cloud Resource Manager API](https://console.developers.google.com/apis/api/cloudresourcemanager.googleapis.com/overview)
 * [Google Container Registry API](https://console.cloud.google.com/apis/api/containerregistry.googleapis.com/overview)
+* [DNS API](https://console.cloud.google.com/apis/api/dns.googleapis.com/overview)
 
 Then make sure that you install
 
@@ -24,7 +25,8 @@ export ZONE=myproject
 export DOMAIN=example.com 
 
 gcloud dns managed-zones create ${ZONE} \
-	--dns-name=${ZONE}.${DOMAIN}.
+	--dns-name=${ZONE}.${DOMAIN}. \
+	--description "k8s zone"
 </code></pre>
 
 # Installing a GKE cluster via the command line
@@ -52,7 +54,7 @@ Now let us do the important part: setup a cluster
 <pre><code>
 export K8S_CLUSTER_NAME=my-first-clusteer
 gcloud container clusters create ${K8S_CLUSTER_NAME} \
-  --cluster-version 1.7.8 \
+  --cluster-version 1.7.9-gke.0 \
   --no-enable-cloud-monitoring \
   --no-enable-cloud-logging \
   --num-nodes 3 \
@@ -77,11 +79,11 @@ kubectl get nodes --show-labels
 For future usage and integration, let us create a gcloud DNS entry for our K8s cluster API: 
 
 <pre><code>
-K8S_API_IP=$(gcloud container clusters describe ${K8S_CLUSTER_NAME} --format json | jq --raw-output '.endpoint')
+export K8S_API_IP=$(gcloud container clusters describe ${K8S_CLUSTER_NAME} --format json | jq --raw-output '.endpoint')
 
 gcloud dns record-sets transaction start --zone=${ZONE}
 gcloud dns record-sets transaction add ${K8S_API_IP} \
-  --name=k8s.${ZONE}.${DOMAIN}. 
+  --name=k8s.${ZONE}.${DOMAIN}. \
   --ttl=300 \
   --type=A \
   --zone=${ZONE}
@@ -107,12 +109,12 @@ Now you are ready to deploy the rest of the add-ons.
 Follow this [document](https://github.com/kubernetes/helm/blob/master/docs/chart_repository.md) to setup a GS bucket and make sure we can store charts in it. Using the CLI it gives: 
 
 <pre><code>
-BUCKET_NAME=my-chart-bucket
+export BUCKET_NAME=my-chart-bucket
 
 gsutil mb -c regional -l ${REGION} gs://${BUCKET_NAME}
-gsutil acl ch -R -u AllUsers:R gs://${BUCKET_NAME}
+gsutil acl ch -r -u AllUsers:R gs://${BUCKET_NAME}
 
-helm repo add project-charts https://${BUCKET_NAME}.storage.googleapis.com
+helm repo add oic-charts https://${BUCKET_NAME}.storage.googleapis.com
 helm repo update
 </code></pre>
 
@@ -138,7 +140,7 @@ gcloud compute addresses create nginx-ingress \
   --description=IP\ Address\ for\ the\ Ingress\ Load\ Balancer \
   --region ${REGION}
 
-NGINX_INGRESS_IP=$(gcloud compute addresses list --format json --filter name=nginx-ingress | jq --raw-output '.[].address')
+export NGINX_INGRESS_IP=$(gcloud compute addresses list --format json --filter name=nginx-ingress | jq --raw-output '.[].address')
 </code></pre>
 
 Now create an entry ingress.${ZONE}.${DOMAIN} with: 
@@ -146,7 +148,7 @@ Now create an entry ingress.${ZONE}.${DOMAIN} with:
 <pre><code>
 gcloud dns record-sets transaction start --zone=${ZONE}
 gcloud dns record-sets transaction add ${NGINX_INGRESS_IP} \
-  --name=ingress.${ZONE}.${DOMAIN}. 
+  --name=ingress.${ZONE}.${DOMAIN}. \
   --ttl=300 \
   --type=A \
   --zone=${ZONE}
@@ -161,7 +163,7 @@ sed s#NGINX_INGRESS_IP#${NGINX_INGRESS_IP}#g etc/nginx-values.yaml > /tmp/nginx-
 helm install --name nginx \
 	--namespace kube-public \
 	--values /tmp/nginx-values.yaml \
-	stable/nginx-ingresscxcxz
+	stable/nginx-ingress
 </code></pre>
 
 ### Secure nginx ingress with Let's Encrypt
@@ -173,7 +175,7 @@ First of all we create a round robin DNS on our hosts with
 gcloud dns record-sets transaction start --zone ${ZONE}
 gcloud dns record-sets transaction add \
 	--zone ${ZONE} \
-	--name ingress.${DOMAIN}. \
+	--name ingress.${ZONE}.${DOMAIN}. \
 	--ttl 600 \
 	--type A $(kubectl get nodes \
 		-o jsonpath='{.items[*].status.addresses[?(@.type=="ExternalIP")].address}')

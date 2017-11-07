@@ -1,0 +1,211 @@
+resource_types:
+  - name: pull-request
+    type: docker-image
+    source:
+      repository: jtarchie/pr
+  - name: pull-request-test
+    type: docker-image
+    source:
+      repository: jtarchie/pr
+      tag: test
+
+resources:
+  - name: git-pr
+    type: git
+    source:
+      uri: git@github.com:jtarchie/pullrequest-resource
+      branch: master
+      private_key: {{github-private-key}}
+  - name: docker-pr
+    type: docker-image
+    source:
+      username: {{docker-username}}
+      password: {{docker-password}}
+      repository: jtarchie/pr
+  - name: git-pull-requests
+    type: pull-request
+    source:
+      access_token: {{github-access-token}}
+      private_key: {{github-private-key}}
+      repo: jtarchie/github-pullrequest-resource
+      base: master
+  - name: merge-pull-requests
+    type: pull-request-test
+    source:
+      access_token: {{github-access-token}}
+      private_key: {{github-private-key}}
+      base: test-merge
+      repo: jtarchie/github-pullrequest-resource
+
+jobs:
+  - name: create-pr
+    plan:
+      - get: git-pr
+        passed: [ 'tests' ]
+        trigger: true
+      - task: create
+        config:
+          platform: linux
+          params:
+            GITHUB_ACCESS_TOKEN: {{github-access-token}}
+          image_resource:
+            type: docker-image
+            source:
+              repository: jtarchie/pr
+              tag: test
+          run:
+            path: ruby
+            args:
+              - -e
+              - |
+                require 'octokit'
+                Octokit.access_token = ENV['GITHUB_ACCESS_TOKEN']
+                repo_name = ENV['REPO_NAME'] || 'jtarchie/pullrequest-resource'
+                base_branch = ENV['BASE_BRANCH'] || 'test-merge'
+                test_branch = "test-merge-#{Time.now.to_i}"
+                sha = Octokit.ref(repo_name, "heads/#{base_branch}").object.sha
+                Octokit.create_ref(repo_name, "heads/#{test_branch}", sha)
+                blob_sha = Octokit.contents(
+                  repo_name,
+                  path: 'README.md',
+                  ref: test_branch
+                ).sha
+                Octokit.update_contents(
+                  repo_name,
+                  'README.md',
+                  'Updating content',
+                  blob_sha,
+                  "File content #{Time.now.to_s}",
+                  branch: test_branch
+                )
+                Octokit.create_pull_request(
+                  repo_name,
+                  base_branch,
+                  test_branch,
+                  'testing the latest build',
+                  'testing the latest build'
+                )
+  - name: test-pr-merge
+    plan:
+      - get: git-pr
+        passed: [ 'create-pr' ]
+      - get: merge-pull-requests
+        trigger: true
+      - put: merge-pull-requests
+        params:
+          path: merge-pull-requests
+          status: success
+          merge:
+            method: merge
+            commit_msg: merge-pull-requests/README.md
+  - name: pr tests
+    plan:
+      - get: git-pull-requests
+        trigger: true
+        version: every
+      - task: rspec
+        privileged: true
+        config:
+          image_resource:
+            type: docker-image
+            source:
+              repository: jtarchie/pr
+              tag: test
+          inputs:
+            - name: git-pull-requests
+          platform: linux
+          run:
+            path: sh
+            args: ['-c', 'cd git-pull-requests && bundle install && bundle exec rspec']
+        on_success:
+          put: git-pull-requests
+          params:
+            path: git-pull-requests
+            status: success
+        on_failure:
+          put: git-pull-requests
+          params:
+            path: git-pull-requests
+            status: failure
+  - name: docker
+    plan:
+      - get: git-pr
+        trigger: true
+      - task: tag
+        config:
+          image_resource:
+            type: docker-image
+            source:
+              repository: alpine
+          platform: linux
+          outputs:
+            - name: tag
+          run:
+            path: sh
+            args: ["-c", "echo test > tag/name"]
+      - put: docker-pr
+        params:
+          build: git-pr
+          dockerfile: git-pr/Dockerfile.test
+          tag: tag/name
+          get_params:
+            skip_download: true
+  - name: tests
+    plan:
+      - get: git-pr
+        passed: [ docker ]
+        trigger: true
+      - task: rspec
+        privileged: true
+        config:
+          image_resource:
+            type: docker-image
+            source:
+              repository: jtarchie/pr
+              tag: test
+          inputs:
+            - name: git-pr
+          platform: linux
+          run:
+            path: sh
+            args: ['-c', 'cd git-pr && bundle install && bundle exec rspec']
+  - name: release
+    plan:
+      - get: git-pr
+        passed: [ 'test-pr-merge' ]
+      - task: next-tag
+        config:
+          image_resource:
+            type: docker-image
+            source:
+              repository: concourse/git-resource
+          platform: linux
+          inputs:
+            - name: git-pr
+          outputs:
+            - name: tag
+          run:
+            path: bash
+            args:
+              - -c
+              - |
+                set -eux
+                echo v > tag/prefix
+                pushd git-pr
+                  git tag -l | sed -e "s/v//" | sort -n | tail -n 1 | xargs -n 1 expr 1 + > ../tag/name
+                popd
+      - put: docker-pr
+        params:
+          build: git-pr
+          dockerfile: git-pr/Dockerfile
+          tag: tag/name
+          tag_prefix: v
+          tag_as_latest: true
+          get_params:
+            skip_download: true
+      - put: git-pr
+        params:
+          repository: git-pr
+          only_tag: true
+          tag: tag/name
+          tag_prefix: v

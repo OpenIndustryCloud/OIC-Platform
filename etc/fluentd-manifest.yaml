@@ -20,7 +20,7 @@ spec:
         effect: NoSchedule
       containers:
       - name: fluentd
-        image: gcr.io/landg-179815/fluentd-kubernetes:v0.12.33-logzio
+        image: gcr.io/beta-180508/fluentd-kubernetes:v0.12.33-logzio
         imagePullPolicy: Always
         env:
           # Logz.io Authentication

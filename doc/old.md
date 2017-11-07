@@ -41,7 +41,7 @@ for host in prometheus mattermost registry; do
     --zone=${ZONE}
 done
 
-gcloud dns --project=landg-179815 record-sets transaction execute --zone=landg
+gcloud dns --project=beta-180508 record-sets transaction execute --zone=landg
 
 
 gcloud dns record-sets transaction execute --zone=${ZONE}
