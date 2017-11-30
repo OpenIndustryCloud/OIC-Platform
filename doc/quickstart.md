@@ -194,6 +194,31 @@ helm install --name kube-lego \
 From now on we can create TLS ingress and let Kube Lego automatically create certs and manage them over time. 
 
 ## Administrative Tools
+### Docker Registry User
+
+You need to create a service account to access the docker registry: 
+
+<pre><code>
+gcloud iam service-accounts create \
+	docker-client \
+	--display-name docker-client
+SA_EMAIL=$(gcloud iam service-accounts list --format json | jq -r '.[] | select(.name | contains("docker-client")).email')
+gcloud iam service-accounts keys create \
+	--iam-account ${SA_EMAIL} \
+	--key-file-type json \
+	docker-client.json
+</code></pre>
+
+Now that is done, create the ACL on the registry: 
+
+<pre><code>
+gsutil acl ch -r -u docker-client@beta-180508.iam.gserviceaccount.com:R gs://artifacts.beta-180508.appspot.com/
+gsutil acl ch -u docker-client@beta-180508.iam.gserviceaccount.com:R gs://artifacts.beta-180508.appspot.com/
+gsutil defacl ch -u docker-client@beta-180508.iam.gserviceaccount.com:R gs://artifacts.beta-180508.appspot.com/
+gsutil acl ch -u docker-client@beta-180508.iam.gserviceaccount.com:W gs://artifacts.beta-180508.appspot.com
+</code></pre>
+
+
 ### Monitoring 
 #### Prometheus
 

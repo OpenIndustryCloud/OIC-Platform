@@ -13,13 +13,13 @@ image: fission/fission-bundle
 pullPolicy: IfNotPresent
 
 ## Fission image version
-imageTag: 0.3.0
+imageTag: 0.4.0-timeout
 
 ## Fission fetcher repository
 fetcherImage: fission/fetcher
 
 ## Fission fetcher image version
-fetcherImageTag: 0.3.0
+fetcherImageTag: 0.4.0
 
 ## Port at which Fission controller service should be exposed
 controllerPort: 31313
@@ -27,7 +27,7 @@ controllerPort: 31313
 ## Port at which Fission router service should be exposed
 routerPort: 31314
 
-loadBalancerIP: "35.197.234.214"
+loadBalancerIP: "35.189.81.49"
 
 ## Port at which NATS streaming service should be exposed
 natsStreamingPort: 31316

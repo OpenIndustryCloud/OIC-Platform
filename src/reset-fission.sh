@@ -18,7 +18,7 @@ helm delete --purge fission-all
 
 kubectl delete job -n fission fission-all-fission-all
 
-sleep 5
+sleep 60
 
 helm install --namespace fission \
 	--name fission-all \
